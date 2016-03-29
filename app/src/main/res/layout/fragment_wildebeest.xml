@@ -1,0 +1,215 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:wild_bee="http://schemas.android.com/apk/res-auto"
+    android:layout_width="fill_parent"
+    android:layout_height="fill_parent"
+    android:orientation="vertical">
+
+    <LinearLayout
+        android:layout_width="0px"
+        android:layout_height="0px"
+        android:focusable="true"
+        android:focusableInTouchMode="true" />
+
+    <RelativeLayout
+        android:id="@+id/vw_title"
+        android:layout_width="wrap_content"
+        android:layout_height="50dip"
+        android:orientation="horizontal">
+
+        <TextView
+            android:id="@+id/aaa"
+            android:layout_width="wrap_content"
+            android:layout_height="50dip"
+            android:text="你的得分：" />
+
+        <TextView
+            android:id="@+id/bbb"
+            android:layout_width="match_parent"
+            android:layout_height="50dip"
+            android:layout_toRightOf="@+id/aaa"
+            android:text="100" />
+    </RelativeLayout>
+
+    <ScrollView
+        android:id="@+id/vw_scroll"
+        android:layout_above="@+id/bottom_vw"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_below="@+id/vw_title">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <LinearLayout
+                android:layout_marginLeft="15dip"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal">
+
+                <RelativeLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1">
+
+                    <TextView
+                        android:id="@+id/tv_1"
+                        android:layout_width="wrap_content"
+                        android:layout_height="50dip"
+                        android:text="里程(m)：" />
+
+                    <TextView
+                        android:id="@+id/tv_travel"
+                        android:layout_width="match_parent"
+                        android:layout_height="50dip"
+                        android:layout_toRightOf="@+id/tv_1"
+                        android:text="" />
+                </RelativeLayout>
+
+                <RelativeLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1">
+
+                    <TextView
+                        android:id="@+id/tv_2"
+                        android:layout_width="wrap_content"
+                        android:layout_height="50dip"
+                        android:text="时长(hh:mm)：" />
+
+                    <TextView
+                        android:id="@+id/tv_timepass"
+                        android:layout_width="match_parent"
+                        android:layout_height="50dip"
+                        android:layout_toRightOf="@+id/tv_2"
+                        android:text="" />
+                </RelativeLayout>
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_marginLeft="15dip"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal">
+
+                <RelativeLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1">
+
+                    <TextView
+                        android:id="@+id/tv_3"
+                        android:layout_width="wrap_content"
+                        android:layout_height="50dip"
+                        android:text="最高速(km/h):" />
+
+                    <TextView
+                        android:id="@+id/tv_maxspeed"
+                        android:layout_width="match_parent"
+                        android:layout_height="50dip"
+                        android:layout_toRightOf="@+id/tv_3"
+                        android:text="" />
+                </RelativeLayout>
+
+                <RelativeLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1">
+
+                    <TextView
+                        android:id="@+id/tv_4"
+                        android:layout_width="wrap_content"
+                        android:layout_height="50dip"
+                        android:text="均速(km/h):" />
+
+                    <TextView
+                        android:id="@+id/tv_avespeed"
+                        android:layout_width="match_parent"
+                        android:layout_height="50dip"
+                        android:layout_toRightOf="@+id/tv_4"
+                        android:text="" />
+                </RelativeLayout>
+            </LinearLayout>
+
+            <LinearLayout
+                android:visibility="gone"
+                android:id="@+id/para_vw"
+                android:layout_marginLeft="15dip"
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:orientation="vertical">
+
+                <TextView
+                    android:id="@+id/tv_5"
+                    android:layout_width="250dp"
+                    android:layout_height="20dip"
+                    android:text="急加速：" />
+                <TextView
+                    android:id="@+id/tv_6"
+                    android:layout_width="250dp"
+                    android:layout_height="20dip"
+                    android:text="急减速：" />
+                <TextView
+                    android:id="@+id/tv_7"
+                    android:layout_width="250dp"
+                    android:layout_height="20dip"
+                    android:text="急转弯：" />
+                <TextView
+                    android:id="@+id/tv_8"
+                    android:layout_width="250dp"
+                    android:layout_height="20dip"
+                    android:text="疲劳：" />
+                <TextView
+                    android:id="@+id/tv_9"
+                    android:layout_width="250dp"
+                    android:layout_height="20dip"
+                    android:text="超速：" />
+                <TextView
+                    android:id="@+id/tv_10"
+                    android:layout_width="250dp"
+                    android:layout_height="20dip"
+                    android:text="路况：" />
+            </LinearLayout>
+
+            <com.github.mikephil.charting.charts.RadarChart
+                android:id="@+id/chart1"
+                android:layout_width="match_parent"
+                android:paddingLeft="150dip"
+                android:paddingRight="150dip"
+                android:layout_height="300dp"
+                android:orientation="vertical" />
+        </LinearLayout>
+    </ScrollView>
+
+
+    <LinearLayout
+        android:id="@+id/bottom_vw"
+        android:visibility="gone"
+        android:layout_width="match_parent"
+        android:layout_height="120dip"
+        android:layout_alignParentBottom="true"
+        android:orientation="vertical">
+
+        <Button
+            android:id="@+id/btn_start"
+            android:layout_width="match_parent"
+            android:layout_height="50dip"
+            android:layout_marginBottom="10dip"
+            android:layout_marginLeft="15dip"
+            android:layout_marginRight="15dip"
+            android:text="开     始"
+            android:textSize="@dimen/space_22" />
+
+        <Button
+            android:id="@+id/btn_finish"
+            android:layout_width="match_parent"
+            android:layout_height="50dip"
+            android:layout_marginBottom="10dip"
+            android:layout_marginLeft="15dip"
+            android:layout_marginRight="15dip"
+            android:text="结     束"
+            android:textSize="@dimen/space_22" />
+    </LinearLayout>
+</RelativeLayout>

@@ -1,0 +1,586 @@
+Index: .idea/libraries/support_annotations_23_1_1.xml
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- .idea/libraries/support_annotations_23_1_1.xml	(revision )
++++ .idea/libraries/support_annotations_23_1_1.xml	(revision )
+@@ -0,0 +1,11 @@
++<component name="libraryTable">
++  <library name="support-annotations-23.1.1">
++    <CLASSES>
++      <root url="jar://$PROJECT_DIR$/../../adt-bundle-windows-x86-adt23.0.2/sdk/extras/android/m2repository/com/android/support/support-annotations/23.1.1/support-annotations-23.1.1.jar!/" />
++    </CLASSES>
++    <JAVADOC />
++    <SOURCES>
++      <root url="jar://$PROJECT_DIR$/../../adt-bundle-windows-x86-adt23.0.2/sdk/extras/android/m2repository/com/android/support/support-annotations/23.1.1/support-annotations-23.1.1-sources.jar!/" />
++    </SOURCES>
++  </library>
++</component>
+\ No newline at end of file
+Index: app/build.gradle
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- app/build.gradle	(revision a980d0bf13de88b0dc81d0fb8b6961925b6e7277)
++++ app/build.gradle	(revision )
+@@ -4,7 +4,7 @@
+ 
+ packer {
+     /**渠道包**/
+-    manifestMatcher = ['UMENG_CHANNEL','Promotion_Market']
++    manifestMatcher = ['UMENG_CHANNEL', 'Promotion_Market']
+     archiveOutput = file(new File(project.rootProject.buildDir.path, "apks"))
+     archiveNameFormat = '${appPkg}-c-${buildType}-${buildTime}'
+ 
+@@ -16,8 +16,9 @@
+ }
+ 
+ android {
+-    compileSdkVersion 22
+-    buildToolsVersion "22.0.1"
++    compileSdkVersion 23
++    buildToolsVersion "23.0.1"
++    useLibrary "org.apache.http.legacy"
+     defaultConfig {
+         // Warning:Renderscript support mode is not currently supported with renderscript target 21+
+         renderscriptTargetApi 20
+@@ -87,6 +88,9 @@
+ 
+ dependencies {
+     compile fileTree(dir: 'libs', include: ['*.jar'])
++    debugCompile 'com.squareup.leakcanary:leakcanary-android:1.3'
++    releaseCompile 'com.squareup.leakcanary:leakcanary-android-no-op:1.3'
++    //compile 'com.google.android.gms:play-services:+'
+     compile 'com.jakewharton:butterknife:7.0.1'
+     compile 'com.squareup.okhttp:okhttp:2.4.0'
+     compile 'com.squareup.picasso:picasso:2.5.2'
+@@ -95,7 +99,5 @@
+     compile 'com.j256.ormlite:ormlite-core:4.48'
+     compile 'com.readystatesoftware.systembartint:systembartint:1.0.3'
+     compile 'in.srain.cube:ultra-ptr:1.0.10'
+-    debugCompile 'com.squareup.leakcanary:leakcanary-android:1.3'
+-    releaseCompile 'com.squareup.leakcanary:leakcanary-android-no-op:1.3'
+-    compile 'com.android.support:support-v4:22.2.1'
++    compile 'com.android.support:support-v4:23.1.1'
+ }
+Index: .idea/encodings.xml
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- .idea/encodings.xml	(revision )
++++ .idea/encodings.xml	(revision )
+@@ -0,0 +1,6 @@
++<?xml version="1.0" encoding="UTF-8"?>
++<project version="4">
++  <component name="Encoding">
++    <file url="PROJECT" charset="UTF-8" />
++  </component>
++</project>
+\ No newline at end of file
+Index: app/src/main/res/values/strings.xml
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- app/src/main/res/values/strings.xml	(revision a980d0bf13de88b0dc81d0fb8b6961925b6e7277)
++++ app/src/main/res/values/strings.xml	(revision )
+@@ -1,44 +1,47 @@
+ <?xml version="1.0" encoding="utf-8"?>
+ <resources>
+-	<string name="app_name">AndroidFine</string>
++    <string name="app_name">AndroidFine</string>
+ 
+-	<string name="clear_cache_menu">Clear Caches</string>
+-	<string name="clear_cache_complete_toast">Caches have been cleared</string>
+-	<string name="imageview_description">Image Thumbnail</string>
+-	<string name="no_network_connection_toast">No network connection found</string>
++    <string name="clear_cache_menu">Clear Caches</string>
++    <string name="clear_cache_complete_toast">Caches have been cleared</string>
++    <string name="imageview_description">Image Thumbnail</string>
++    <string name="no_network_connection_toast">No network connection found</string>
+ 
+-	<!-- 页面名称 -->
+-	<string name="main_navigation_home">首页</string>
+-	<string name="main_navigation_im">选房清单</string>
+-	<string name="main_navigation_interest">看房日程</string>
+-	<string name="main_navigation_user">我的</string>
++    <!-- 页面名称 -->
++    <string name="main_navigation_home">首页</string>
++    <string name="main_navigation_im">选房清单</string>
++    <string name="main_navigation_interest">看房日程</string>
++    <string name="main_navigation_user">我的</string>
+ 
+-	<string name="market_info_title">大盘行情   dds</string>
++    <string name="market_info_title">大盘行情   dds</string>
+ 
+-	<string name="progress_loading">加载中，请稍候</string>
+-	<string name="progress_load_error">加载失败，点击屏幕刷新</string>
+-	<string name="progress_load_no_data">暂无数据</string>
++    <string name="progress_loading">加载中，请稍候</string>
++    <string name="progress_load_error">加载失败，点击屏幕刷新</string>
++    <string name="progress_load_no_data">暂无数据</string>
+ 
+-	<!-- 手势密码 -->
+-	<string name="string_security_setting">安全设置</string>
+-	<string name="string_gesture_password">手势密码</string>
+-	<string name="string_modify_gesture_password">修改手势密码</string>
+-	<string name="string_set_gesture_password">设置手势密码</string>
+-	<string name="string_guide_info">您可以创建一个</string>
+-	<string name="string_guide_info_right">手势密码图案</string>
+-	<string name="string_guide_info_last">使用手势密码进行登录，安全、便捷</string>
++    <!-- 手势密码 -->
++    <string name="string_security_setting">安全设置</string>
++    <string name="string_gesture_password">手势密码</string>
++    <string name="string_modify_gesture_password">修改手势密码</string>
++    <string name="string_set_gesture_password">设置手势密码</string>
++    <string name="string_guide_info">您可以创建一个</string>
++    <string name="string_guide_info_right">手势密码图案</string>
++    <string name="string_guide_info_last">使用手势密码进行登录，安全、便捷</string>
+ 
+-	<string name="retry_gesture">重新绘制解锁图案</string>
+-	<string name="draw_gesture">绘制解锁图案</string>
+-	<string name="draw_gesture_again">再次输入手势密码</string>
+-	<string name="draw_gesture_not_same">与上次绘制不一致，请重新绘制</string>
+-	<string name="gesture_login_five_failed">登录错误过多，账号被注销</string>
+-	<string name="draw_gesture_need_six_dot">至少连接六个点，请重新绘制</string>
+-	<string name="draw_gesture_left_chances">输入手势密码错误，还有%s次机会</string>
+-	<string name="forget_gesture_need_login">忘记手势密码，需重新登录</string>
+-	<string name="draw_gesture_error_clear_login">输入手势密码错误5次，登录状态已清除</string>
+-	<string name="set_complete">设置成功</string>
+-	<string name="forget_gesture">忘记手势密码</string>
++    <string name="retry_gesture">重新绘制解锁图案</string>
++    <string name="draw_gesture">绘制解锁图案</string>
++    <string name="draw_gesture_again">再次输入手势密码</string>
++    <string name="draw_gesture_not_same">与上次绘制不一致，请重新绘制</string>
++    <string name="gesture_login_five_failed">登录错误过多，账号被注销</string>
++    <string name="draw_gesture_need_six_dot">至少连接六个点，请重新绘制</string>
++    <string name="draw_gesture_left_chances">输入手势密码错误，还有%s次机会</string>
++    <string name="forget_gesture_need_login">忘记手势密码，需重新登录</string>
++    <string name="draw_gesture_error_clear_login">输入手势密码错误5次，登录状态已清除</string>
++    <string name="set_complete">设置成功</string>
++    <string name="forget_gesture">忘记手势密码</string>
+ 
++    <!-- TODO: Remove or change this placeholder text -->
++    <string name="hello_blank_fragment">Hello blank fragment</string>
++
+ 
+ </resources>
+\ No newline at end of file
+Index: app/src/main/java/com/yuzhi/fine/activity/MainActivity.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- app/src/main/java/com/yuzhi/fine/activity/MainActivity.java	(revision a980d0bf13de88b0dc81d0fb8b6961925b6e7277)
++++ app/src/main/java/com/yuzhi/fine/activity/MainActivity.java	(revision )
+@@ -12,6 +12,7 @@
+ import com.yuzhi.fine.fragment.BufferKnifeFragment;
+ import com.yuzhi.fine.fragment.MainPagerFragment;
+ import com.yuzhi.fine.fragment.MemberFragment;
++import com.yuzhi.fine.fragment.WildebeestFragment;
+ import com.yuzhi.fine.ui.UIHelper;
+ 
+ import java.util.ArrayList;
+@@ -112,7 +113,7 @@
+     private Fragment instantFragment(int currIndex) {
+         switch (currIndex) {
+             case 0: return new MainPagerFragment();
+-            case 1: return new BufferKnifeFragment();
++            case 1: return new WildebeestFragment();
+             case 2: return new BufferKnifeFragment();
+             case 3: return new MemberFragment();
+             default: return null;
+Index: app/src/main/java/com/yuzhi/fine/fragment/MainPagerFragment.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- app/src/main/java/com/yuzhi/fine/fragment/MainPagerFragment.java	(revision a980d0bf13de88b0dc81d0fb8b6961925b6e7277)
++++ app/src/main/java/com/yuzhi/fine/fragment/MainPagerFragment.java	(revision )
+@@ -54,7 +54,7 @@
+                 return new DemoPtrFragment();
+             }
+             if (position == 1) {
+-                return new BufferKnifeFragment();
++                return new WildebeestFragment();
+             }
+             if (position == 2) {
+                 return new BufferKnifeFragment();
+Index: app/src/main/java/com/yuzhi/fine/fragment/WildebeestFragment.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- app/src/main/java/com/yuzhi/fine/fragment/WildebeestFragment.java	(revision )
++++ app/src/main/java/com/yuzhi/fine/fragment/WildebeestFragment.java	(revision )
+@@ -0,0 +1,18 @@
++package com.yuzhi.fine.fragment;
++
++import android.os.Bundle;
++import android.support.v4.app.Fragment;
++import android.view.LayoutInflater;
++import android.view.View;
++import android.view.ViewGroup;
++
++import com.yuzhi.fine.R;
++
++public class WildebeestFragment extends Fragment {
++
++    public View onCreateView(LayoutInflater inflater, ViewGroup container,
++                             Bundle savedInstanceState) {
++        return inflater.inflate(R.layout.fragment_wildebeest, container, false);
++    }
++
++}
+Index: app/src/main/java/com/yuzhi/fine/ui/pulltorefresh/PullToRefreshWebView.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- app/src/main/java/com/yuzhi/fine/ui/pulltorefresh/PullToRefreshWebView.java	(revision a980d0bf13de88b0dc81d0fb8b6961925b6e7277)
++++ app/src/main/java/com/yuzhi/fine/ui/pulltorefresh/PullToRefreshWebView.java	(revision )
+@@ -21,7 +21,6 @@
+ import android.os.Build.VERSION_CODES;
+ import android.os.Bundle;
+ import android.util.AttributeSet;
+-import android.util.FloatMath;
+ import android.webkit.WebChromeClient;
+ import android.webkit.WebView;
+ import com.yuzhi.fine.R;
+@@ -113,7 +112,7 @@
+ 
+     @Override
+     protected boolean isReadyForPullEnd() {
+-        float exactContentHeight = FloatMath.floor(mRefreshableView.getContentHeight() * mRefreshableView.getScale());
++        double exactContentHeight = Math.floor(mRefreshableView.getContentHeight() * mRefreshableView.getScale());
+         return mRefreshableView.getScrollY() >= (exactContentHeight - mRefreshableView.getHeight());
+     }
+ 
+@@ -159,7 +158,7 @@
+         }
+ 
+         private int getScrollRange() {
+-            return (int) Math.max(0, FloatMath.floor(mRefreshableView.getContentHeight() * mRefreshableView.getScale())
++            return (int) Math.max(0, Math.floor(mRefreshableView.getContentHeight() * mRefreshableView.getScale())
+                     - (getHeight() - getPaddingBottom() - getPaddingTop()));
+         }
+     }
+Index: app/src/main/java/com/yuzhi/fine/ui/viewpagerindicator/LinePageIndicator.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- app/src/main/java/com/yuzhi/fine/ui/viewpagerindicator/LinePageIndicator.java	(revision a980d0bf13de88b0dc81d0fb8b6961925b6e7277)
++++ app/src/main/java/com/yuzhi/fine/ui/viewpagerindicator/LinePageIndicator.java	(revision )
+@@ -369,7 +369,7 @@
+                 result = Math.min(result, specSize);
+             }
+         }
+-        return (int) FloatMath.ceil(result);
++        return (int) Math.ceil(result);
+     }
+ 
+     /**
+@@ -394,7 +394,7 @@
+                 result = Math.min(result, specSize);
+             }
+         }
+-        return (int) FloatMath.ceil(result);
++        return (int) Math.ceil(result);
+     }
+ 
+     @Override
+\ No newline at end of file
+Index: app/packer.properties
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>GBK
+===================================================================
+--- app/packer.properties	(revision a980d0bf13de88b0dc81d0fb8b6961925b6e7277)
++++ app/packer.properties	(revision )
+@@ -1,2 +1,2 @@
+-#Tue Feb 02 11:47:36 CST 2016
+-version=81
++#Thu Mar 03 09:42:57 CST 2016
++version=149
+Index: app/src/main/java/com/yuzhi/fine/utils/StringUtils.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- app/src/main/java/com/yuzhi/fine/utils/StringUtils.java	(revision a980d0bf13de88b0dc81d0fb8b6961925b6e7277)
++++ app/src/main/java/com/yuzhi/fine/utils/StringUtils.java	(revision )
+@@ -284,7 +284,7 @@
+         long currentTime = System.currentTimeMillis();
+         float i = ((currentTime - date) / 3600 / 1000);
+         if (i < 1) {
+-            int time = (int) FloatMath.ceil(i * 60);
++            int time = (int) Math.ceil(i * 60);
+             return time + 1 + "分钟前";
+         } else if (i < 24) {
+             return (int) i + "小时前";
+Index: gradle.properties
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>GBK
+===================================================================
+--- gradle.properties	(revision a980d0bf13de88b0dc81d0fb8b6961925b6e7277)
++++ gradle.properties	(revision )
+@@ -15,4 +15,6 @@
+ # When configured, Gradle will run in incubating parallel mode.
+ # This option should only be used with decoupled projects. More details, visit
+ # http://www.gradle.org/docs/current/userguide/multi_project_builds.html#sec:decoupled_projects
+-# org.gradle.parallel=true
+\ No newline at end of file
++# org.gradle.parallel=true
++
++org.gradle.jvmargs=-Xmx512m
+\ No newline at end of file
+Index: app/app.iml
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- app/app.iml	(revision a980d0bf13de88b0dc81d0fb8b6961925b6e7277)
++++ app/app.iml	(revision a980d0bf13de88b0dc81d0fb8b6961925b6e7277)
+@@ -1,104 +0,0 @@
+-<?xml version="1.0" encoding="UTF-8"?>
+-<module external.linked.project.id=":app" external.linked.project.path="$MODULE_DIR$" external.root.project.path="$MODULE_DIR$/.." external.system.id="GRADLE" external.system.module.group="AndroidFine" external.system.module.version="unspecified" type="JAVA_MODULE" version="4">
+-  <component name="FacetManager">
+-    <facet type="android-gradle" name="Android-Gradle">
+-      <configuration>
+-        <option name="GRADLE_PROJECT_PATH" value=":app" />
+-      </configuration>
+-    </facet>
+-    <facet type="android" name="Android">
+-      <configuration>
+-        <option name="SELECTED_BUILD_VARIANT" value="debug" />
+-        <option name="SELECTED_TEST_ARTIFACT" value="_android_test_" />
+-        <option name="ASSEMBLE_TASK_NAME" value="assembleDebug" />
+-        <option name="COMPILE_JAVA_TASK_NAME" value="compileDebugSources" />
+-        <option name="ASSEMBLE_TEST_TASK_NAME" value="assembleDebugAndroidTest" />
+-        <option name="COMPILE_JAVA_TEST_TASK_NAME" value="compileDebugAndroidTestSources" />
+-        <afterSyncTasks>
+-          <task>generateDebugAndroidTestSources</task>
+-          <task>generateDebugSources</task>
+-        </afterSyncTasks>
+-        <option name="ALLOW_USER_CONFIGURATION" value="false" />
+-        <option name="MANIFEST_FILE_RELATIVE_PATH" value="/src/main/AndroidManifest.xml" />
+-        <option name="RES_FOLDER_RELATIVE_PATH" value="/src/main/res" />
+-        <option name="RES_FOLDERS_RELATIVE_PATH" value="file://$MODULE_DIR$/src/main/res" />
+-        <option name="ASSETS_FOLDER_RELATIVE_PATH" value="/src/main/assets" />
+-      </configuration>
+-    </facet>
+-  </component>
+-  <component name="NewModuleRootManager" LANGUAGE_LEVEL="JDK_1_7" inherit-compiler-output="false">
+-    <output url="file://$MODULE_DIR$/build/intermediates/classes/debug" />
+-    <output-test url="file://$MODULE_DIR$/build/intermediates/classes/androidTest/debug" />
+-    <exclude-output />
+-    <content url="file://$MODULE_DIR$">
+-      <sourceFolder url="file://$MODULE_DIR$/build/generated/source/r/debug" isTestSource="false" generated="true" />
+-      <sourceFolder url="file://$MODULE_DIR$/build/generated/source/aidl/debug" isTestSource="false" generated="true" />
+-      <sourceFolder url="file://$MODULE_DIR$/build/generated/source/buildConfig/debug" isTestSource="false" generated="true" />
+-      <sourceFolder url="file://$MODULE_DIR$/build/generated/source/rs/debug" isTestSource="false" generated="true" />
+-      <sourceFolder url="file://$MODULE_DIR$/build/generated/res/rs/debug" type="java-resource" />
+-      <sourceFolder url="file://$MODULE_DIR$/build/generated/res/resValues/debug" type="java-resource" />
+-      <sourceFolder url="file://$MODULE_DIR$/build/generated/source/r/androidTest/debug" isTestSource="true" generated="true" />
+-      <sourceFolder url="file://$MODULE_DIR$/build/generated/source/aidl/androidTest/debug" isTestSource="true" generated="true" />
+-      <sourceFolder url="file://$MODULE_DIR$/build/generated/source/buildConfig/androidTest/debug" isTestSource="true" generated="true" />
+-      <sourceFolder url="file://$MODULE_DIR$/build/generated/source/rs/androidTest/debug" isTestSource="true" generated="true" />
+-      <sourceFolder url="file://$MODULE_DIR$/build/generated/res/rs/androidTest/debug" type="java-test-resource" />
+-      <sourceFolder url="file://$MODULE_DIR$/build/generated/res/resValues/androidTest/debug" type="java-test-resource" />
+-      <sourceFolder url="file://$MODULE_DIR$/src/debug/res" type="java-resource" />
+-      <sourceFolder url="file://$MODULE_DIR$/src/debug/resources" type="java-resource" />
+-      <sourceFolder url="file://$MODULE_DIR$/src/debug/assets" type="java-resource" />
+-      <sourceFolder url="file://$MODULE_DIR$/src/debug/aidl" isTestSource="false" />
+-      <sourceFolder url="file://$MODULE_DIR$/src/debug/java" isTestSource="false" />
+-      <sourceFolder url="file://$MODULE_DIR$/src/debug/jni" isTestSource="false" />
+-      <sourceFolder url="file://$MODULE_DIR$/src/debug/rs" isTestSource="false" />
+-      <sourceFolder url="file://$MODULE_DIR$/src/main/res" type="java-resource" />
+-      <sourceFolder url="file://$MODULE_DIR$/src/main/resources" type="java-resource" />
+-      <sourceFolder url="file://$MODULE_DIR$/src/main/assets" type="java-resource" />
+-      <sourceFolder url="file://$MODULE_DIR$/src/main/aidl" isTestSource="false" />
+-      <sourceFolder url="file://$MODULE_DIR$/src/main/java" isTestSource="false" />
+-      <sourceFolder url="file://$MODULE_DIR$/src/main/jni" isTestSource="false" />
+-      <sourceFolder url="file://$MODULE_DIR$/src/main/rs" isTestSource="false" />
+-      <sourceFolder url="file://$MODULE_DIR$/src/androidTest/res" type="java-test-resource" />
+-      <sourceFolder url="file://$MODULE_DIR$/src/androidTest/resources" type="java-test-resource" />
+-      <sourceFolder url="file://$MODULE_DIR$/src/androidTest/assets" type="java-test-resource" />
+-      <sourceFolder url="file://$MODULE_DIR$/src/androidTest/aidl" isTestSource="true" />
+-      <sourceFolder url="file://$MODULE_DIR$/src/androidTest/java" isTestSource="true" />
+-      <sourceFolder url="file://$MODULE_DIR$/src/androidTest/jni" isTestSource="true" />
+-      <sourceFolder url="file://$MODULE_DIR$/src/androidTest/rs" isTestSource="true" />
+-      <excludeFolder url="file://$MODULE_DIR$/build/intermediates/assets" />
+-      <excludeFolder url="file://$MODULE_DIR$/build/intermediates/classes" />
+-      <excludeFolder url="file://$MODULE_DIR$/build/intermediates/debug" />
+-      <excludeFolder url="file://$MODULE_DIR$/build/intermediates/dependency-cache" />
+-      <excludeFolder url="file://$MODULE_DIR$/build/intermediates/dex" />
+-      <excludeFolder url="file://$MODULE_DIR$/build/intermediates/exploded-aar/com.android.support/support-v4/22.2.1/jars" />
+-      <excludeFolder url="file://$MODULE_DIR$/build/intermediates/exploded-aar/com.squareup.leakcanary/leakcanary-android/1.3/jars" />
+-      <excludeFolder url="file://$MODULE_DIR$/build/intermediates/exploded-aar/in.srain.cube/ultra-ptr/1.0.10/jars" />
+-      <excludeFolder url="file://$MODULE_DIR$/build/intermediates/incremental" />
+-      <excludeFolder url="file://$MODULE_DIR$/build/intermediates/manifests" />
+-      <excludeFolder url="file://$MODULE_DIR$/build/intermediates/pre-dexed" />
+-      <excludeFolder url="file://$MODULE_DIR$/build/intermediates/res" />
+-      <excludeFolder url="file://$MODULE_DIR$/build/intermediates/rs" />
+-      <excludeFolder url="file://$MODULE_DIR$/build/intermediates/symbols" />
+-      <excludeFolder url="file://$MODULE_DIR$/build/intermediates/tmp" />
+-      <excludeFolder url="file://$MODULE_DIR$/build/outputs" />
+-      <excludeFolder url="file://$MODULE_DIR$/build/tmp" />
+-    </content>
+-    <orderEntry type="jdk" jdkName="Android API 22 Platform" jdkType="Android SDK" />
+-    <orderEntry type="sourceFolder" forTests="false" />
+-    <orderEntry type="library" exported="" name="ormlite-android-4.48" level="project" />
+-    <orderEntry type="library" exported="" name="leakcanary-watcher-1.3" level="project" />
+-    <orderEntry type="library" exported="" name="ultra-ptr-1.0.10" level="project" />
+-    <orderEntry type="library" exported="" name="systembartint-1.0.3" level="project" />
+-    <orderEntry type="library" exported="" name="leakcanary-android-1.3" level="project" />
+-    <orderEntry type="library" exported="" name="butterknife-7.0.1" level="project" />
+-    <orderEntry type="library" exported="" name="fastjson-1.1.34.android" level="project" />
+-    <orderEntry type="library" exported="" name="support-annotations-22.2.1" level="project" />
+-    <orderEntry type="library" exported="" name="picasso-2.5.2" level="project" />
+-    <orderEntry type="library" exported="" name="renderscript-v8" level="project" />
+-    <orderEntry type="library" exported="" name="haha-1.1" level="project" />
+-    <orderEntry type="library" exported="" name="okhttp-2.4.0" level="project" />
+-    <orderEntry type="library" exported="" name="ormlite-core-4.48" level="project" />
+-    <orderEntry type="library" exported="" name="support-v4-22.2.1" level="project" />
+-    <orderEntry type="library" exported="" name="leakcanary-analyzer-1.3" level="project" />
+-    <orderEntry type="library" exported="" name="okio-1.4.0" level="project" />
+-  </component>
+-</module>
+\ No newline at end of file
+Index: app/src/main/res/layout/fragment_wildebeest.xml
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- app/src/main/res/layout/fragment_wildebeest.xml	(revision )
++++ app/src/main/res/layout/fragment_wildebeest.xml	(revision )
+@@ -0,0 +1,84 @@
++<?xml version="1.0" encoding="utf-8"?>
++<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
++    xmlns:wild_bee="http://schemas.android.com/apk/res-auto"
++    android:layout_width="fill_parent"
++    android:layout_height="fill_parent"
++    android:orientation="vertical">
++
++    <LinearLayout
++        android:layout_width="0px"
++        android:layout_height="0px"
++        android:focusable="true"
++        android:focusableInTouchMode="true"/>
++
++    <RelativeLayout
++        android:id="@+id/vw_title"
++        android:layout_width="wrap_content"
++        android:layout_height="50dip"
++        android:orientation="horizontal">
++        <TextView
++            android:id="@+id/aaa"
++            android:layout_width="wrap_content"
++            android:layout_height="50dip"
++            android:text="hello_blaaaa"
++            />
++        <TextView
++            android:layout_toRightOf="@+id/aaa"
++            android:layout_width="match_parent"
++            android:layout_height="50dip"
++            android:text="@string/hello_blank_fragment" />
++    </RelativeLayout>
++
++    <ScrollView
++        android:id="@+id/vw_scroll"
++        android:layout_width="match_parent"
++        android:layout_height="match_parent"
++        android:layout_below="@+id/vw_title">
++
++        <LinearLayout
++            android:layout_width="match_parent"
++            android:layout_height="match_parent"
++            android:orientation="vertical">
++
++            <TextView
++                android:id="@+id/aaa"
++                android:layout_width="wrap_content"
++                android:layout_height="50dip"
++                android:text="hello_blaaaa"
++                />
++            <TextView
++                android:layout_toRightOf="@+id/aaa"
++                android:layout_width="match_parent"
++                android:layout_height="50dip"
++                android:text="@string/hello_blank_fragment" />
++        </LinearLayout>
++    </ScrollView>
++
++
++    <LinearLayout
++        android:layout_width="match_parent"
++        android:layout_height="120dip"
++        android:layout_alignParentBottom="true"
++        android:orientation="vertical">
++        <Button
++            android:layout_width="match_parent"
++            android:layout_height="50dip"
++            android:layout_marginLeft="15dip"
++            android:layout_marginRight="15dip"
++            android:layout_marginBottom="10dip"
++            android:textSize="@dimen/space_22"
++            android:text="开     始"
++            />
++
++        <Button
++            android:id="@+id/btn_finish"
++            android:layout_width="match_parent"
++            android:layout_height="50dip"
++            android:layout_marginLeft="15dip"
++            android:layout_marginRight="15dip"
++            android:layout_marginBottom="10dip"
++            android:textSize="@dimen/space_22"
++            android:text="结     束"
++            />
++    </LinearLayout>
++</RelativeLayout>
+Index: local.properties
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>GBK
+===================================================================
+--- local.properties	(revision a980d0bf13de88b0dc81d0fb8b6961925b6e7277)
++++ local.properties	(revision )
+@@ -7,5 +7,5 @@
+ # Location of the SDK. This is only used by Gradle.
+ # For customization when using a Version Control System, please read the
+ # header note.
+-#Mon Oct 26 10:14:22 CST 2015
+-sdk.dir=/usr/local/android-sdk
++#Tue Mar 01 11:26:04 CST 2016
++sdk.dir=C\:\\hjx\\gitHub\\adt-bundle-windows-x86-adt23.0.2\\sdk
+Index: .idea/libraries/support_v4_23_1_1.xml
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- .idea/libraries/support_v4_23_1_1.xml	(revision )
++++ .idea/libraries/support_v4_23_1_1.xml	(revision )
+@@ -0,0 +1,16 @@
++<component name="libraryTable">
++  <library name="support-v4-23.1.1">
++    <ANNOTATIONS>
++      <root url="jar://$PROJECT_DIR$/app/build/intermediates/exploded-aar/com.android.support/support-v4/23.1.1/annotations.zip!/" />
++    </ANNOTATIONS>
++    <CLASSES>
++      <root url="jar://$PROJECT_DIR$/app/build/intermediates/exploded-aar/com.android.support/support-v4/23.1.1/jars/classes.jar!/" />
++      <root url="file://$PROJECT_DIR$/app/build/intermediates/exploded-aar/com.android.support/support-v4/23.1.1/res" />
++      <root url="jar://$PROJECT_DIR$/app/build/intermediates/exploded-aar/com.android.support/support-v4/23.1.1/jars/libs/internal_impl-23.1.1.jar!/" />
++    </CLASSES>
++    <JAVADOC />
++    <SOURCES>
++      <root url="jar://$PROJECT_DIR$/../../adt-bundle-windows-x86-adt23.0.2/sdk/extras/android/m2repository/com/android/support/support-v4/23.1.1/support-v4-23.1.1-sources.jar!/" />
++    </SOURCES>
++  </library>
++</component>
+\ No newline at end of file

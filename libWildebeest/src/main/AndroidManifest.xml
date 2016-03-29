@@ -1,0 +1,40 @@
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="com.example.huangyc.wildebeestlib">
+
+    <application
+        android:allowBackup="true"
+        android:label="@string/app_name"
+        android:supportsRtl="true">
+
+
+        <receiver android:name="com.jxtii.wildebeest.service.TaskReceiver">
+            <intent-filter>
+                <action android:name="com.jxtii.wildebeest.task_receiver"/>
+                <action android:name="com.jxtii.wildebeest.stop_receiver"/>
+            </intent-filter>
+        </receiver>
+
+        <service android:name="com.jxtii.wildebeest.service.TaskService"
+            android:enabled="true"
+            android:label="奔跑的角马">
+            <intent-filter>
+                <action android:name="com.jxtii.wildebeest.task_service"/>
+            </intent-filter>
+        </service>
+
+        <service android:name="com.jxtii.wildebeest.service.CoreService"
+            android:enabled="true"
+            android:label="角马的秘密">
+            <intent-filter>
+                <action android:name="com.jxtii.wildebeest.core_service"/>
+            </intent-filter>
+        </service>
+
+        <service android:name="com.amap.api.location.APSService"/>
+
+
+        <meta-data android:name="com.amap.api.v2.apikey" android:value="1bbcfb374c7f876229c141d4adb11962"/>
+
+    </application>
+
+</manifest>
