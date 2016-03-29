@@ -38,7 +38,7 @@ task makeJar(type: Copy) {
     from('build/intermediates/bundles/release/')
     into('build/libs/')
     include('classes.jar')
-    rename ('classes.jar', 'wildebeest_V0.91_20160328.jar')
+    rename ('classes.jar', 'wildebeest_V0.92_20160329.jar')
 }
 
 makeJar.dependsOn(build)
