@@ -1,10 +1,13 @@
 package com.jxtii.wildebeest.service;
 
+import android.app.AlarmManager;
+import android.app.PendingIntent;
 import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
 import android.os.IBinder;
 import android.os.PowerManager;
+import android.os.SystemClock;
 import android.text.TextUtils;
 import android.util.Log;
 
@@ -12,8 +15,14 @@ import com.alibaba.fastjson.JSON;
 import com.amap.api.location.AMapLocation;
 import com.jxtii.wildebeest.bean.PointRecordBus;
 import com.jxtii.wildebeest.bean.PubData;
+import com.jxtii.wildebeest.bean.RouteFinishBus;
 import com.jxtii.wildebeest.core.AMAPLocalizer;
+import com.jxtii.wildebeest.model.CompreRecord;
+import com.jxtii.wildebeest.model.NoGpsInfo;
+import com.jxtii.wildebeest.model.PointRecord;
+import com.jxtii.wildebeest.model.PositionRecord;
 import com.jxtii.wildebeest.model.RouteLog;
+import com.jxtii.wildebeest.util.CommUtil;
 import com.jxtii.wildebeest.util.DateStr;
 import com.jxtii.wildebeest.webservice.WebserviceClient;
 
@@ -23,6 +32,7 @@ import org.greenrobot.eventbus.ThreadMode;
 import org.litepal.crud.DataSupport;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -73,6 +83,7 @@ public class TaskService extends Service {
                     public void run() {
                         acquireWakeLock(ctx);
                         uploadLocInfo();
+                        isNeedFinish();
                         releaseWakeLock();
                     }
                 };
@@ -216,6 +227,75 @@ public class TaskService extends Service {
         }
     }
 
+    void isNeedFinish(){
+        Boolean isOpen = CommUtil.isOpenGPS(ctx);
+        if(!isOpen){
+            uploadFinishInfo();
+        }else{
+            NoGpsInfo noGpsInfo = null;
+            List<NoGpsInfo> listInfo = DataSupport.select("id", "noGpsTime").order("noGpsTime desc").limit(2).find(NoGpsInfo.class);
+            if (listInfo != null && listInfo.size() > 0) {
+                noGpsInfo = listInfo.get(0);
+            }
+            if(noGpsInfo != null){
+                String last = noGpsInfo.getNoGpsTime();
+                long max = CommUtil.timeSpanSecond(last, DateStr.yyyymmddHHmmssStr());
+                if (max > CommUtil.NOGPS_TIME) {
+                    uploadFinishInfo();
+                }
+            }
+        }
+    }
+
+    void uploadFinishInfo() {
+        new Thread() {
+            public void run() {
+                RouteLog log = DataSupport.findLast(RouteLog.class);
+                CompreRecord cr = DataSupport.findLast(CompreRecord.class);
+                if (log != null && cr != null) {
+                    long timeFin = CommUtil.timeSpanSecond(cr.getBeginTime(), cr.getCurrentTime());
+                    float aveSp = cr.getTravelMeter() * 18 / (timeFin * 5);
+                    Map<String, Object> paramAfter = new HashMap<String, Object>();
+                    paramAfter.put("sqlKey", "nosql");
+                    paramAfter.put("sqlType", "nosql");
+                    paramAfter.put("rRouteId", log.getpRouteId());
+                    paramAfter.put("rHighSpeed", cr.getMaxSpeed());
+                    paramAfter.put("rAveSpeed", aveSp);
+                    paramAfter.put("rTravelMeter", cr.getTravelMeter());
+                    Map<String, Object> config = new HashMap<String, Object>();
+                    config.put("interfaceName", "pjRouteFactorFinish");
+                    config.put("asyn", "false");
+                    paramAfter.put("interfaceConfig", config);
+                    String paramStr = JSON.toJSONString(paramAfter);
+                    Log.w(TAG, "paramStr = " + paramStr);
+                    PubData pubData = new WebserviceClient().loadData(paramStr);
+                    Log.w(TAG, "pubData.getCode() = " + pubData.getCode());
+                    if (pubData != null && "00".equals(pubData.getCode())) {
+                        if (pubData.getData() != null) {
+                            Log.w(TAG, "pubData.getData() = " + JSON.toJSONString(pubData.getData()));
+                            if (pubData.getData().get("msgCode") != null && "0".equals(pubData.getData().get("msgCode"))) {
+                                deleteAll();
+                                RouteFinishBus rfBus = new RouteFinishBus();
+                                rfBus.setRouteId(log.getpRouteId());
+                                rfBus.setFinishTime(DateStr.yyyymmddHHmmssStr());
+                                EventBus.getDefault().post(rfBus);
+                                stopSelfSevice();
+                            }
+                        }
+                    }
+                }
+            }
+        }.start();
+    }
+
+    void deleteAll(){
+        DataSupport.deleteAll(RouteLog.class);
+        DataSupport.deleteAll(PositionRecord.class);
+        DataSupport.deleteAll(CompreRecord.class);
+        DataSupport.deleteAll(PointRecord.class);
+        DataSupport.deleteAll(NoGpsInfo.class);
+    }
+
     @Override
     public void onDestroy() {
         Log.w(TAG,">>>>>>>>  onDestroy");
@@ -237,16 +317,20 @@ public class TaskService extends Service {
 
     void stopSelfSevice() {
         Log.w(TAG,">>>>>>>>  stopSelfSevice");
-//        AlarmManager am = (AlarmManager) this
-//                .getSystemService(Context.ALARM_SERVICE);
-//        PendingIntent pendingIntent = PendingIntent.getBroadcast(this, 3,
-//                new Intent(CommUtil.START_INTENT), 0);
-//        long triggerAtTime = SystemClock.elapsedRealtime() + 5 * 1000;
-//        am.set(AlarmManager.ELAPSED_REALTIME_WAKEUP, triggerAtTime,
-//                pendingIntent);
-        //暂时屏蔽停止定位服务
-//        if (amapLocalizer != null)
-//            amapLocalizer.setLocationManager(false, "", 0);
+
+        if (amapLocalizer != null) {
+            amapLocalizer.setLocationManager(false, "", 0);
+        }
+        AlarmManager am = (AlarmManager) this
+                .getSystemService(Context.ALARM_SERVICE);
+        Intent intent = new Intent();
+        intent.setAction(CommUtil.START_INTENT);
+        intent.setPackage(ctx.getPackageName());
+        PendingIntent pendingIntent = PendingIntent.getBroadcast(this, 1,
+                intent, 0);
+        long triggerAtTime = SystemClock.elapsedRealtime() + 30 * 1000;
+        am.set(AlarmManager.ELAPSED_REALTIME_WAKEUP, triggerAtTime,
+                pendingIntent);
         stopTimer();
         EventBus.getDefault().unregister(this);
         this.stopSelf();

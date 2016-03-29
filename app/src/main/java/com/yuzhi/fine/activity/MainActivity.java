@@ -72,8 +72,7 @@ public class MainActivity extends BaseFragmentActivity {
         long interval = 15 * 60 * 1000;
         Intent intent = new Intent();
         intent.setAction(CommUtil.START_INTENT);
-        intent.setPackage("com.yuzhi.fine");
-        intent.putExtra("interval", 2000);
+        intent.setPackage(this.getPackageName());
         PendingIntent pt = PendingIntent.getBroadcast(this, 0, intent, 0);
         am.setRepeating(AlarmManager.RTC_WAKEUP, triggerAtTime, interval, pt);
     }

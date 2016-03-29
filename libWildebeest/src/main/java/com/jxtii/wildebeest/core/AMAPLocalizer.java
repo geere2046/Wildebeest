@@ -101,6 +101,7 @@ public class AMAPLocalizer implements AMapLocationListener {
                 this.aMapLocationClient.onDestroy();
             }
             this.aMapLocationClient = null;
+            isStart = false;
         }
     }
 
@@ -294,6 +295,14 @@ public class AMAPLocalizer implements AMapLocationListener {
         }
     }
 
+    void deleteAll(){
+        DataSupport.deleteAll(RouteLog.class);
+        DataSupport.deleteAll(PositionRecord.class);
+        DataSupport.deleteAll(CompreRecord.class);
+        DataSupport.deleteAll(PointRecord.class);
+        DataSupport.deleteAll(NoGpsInfo.class);
+    }
+
     void uploadInitInfo() {
         new Thread() {
             public void run() {
@@ -308,12 +317,7 @@ public class AMAPLocalizer implements AMapLocationListener {
                 PubData pubData = new WebserviceClient().updateData(paramStr);
                 if (pubData != null && "00".equals(pubData.getCode())) {
                     isStart = true;
-                    DataSupport.deleteAll(PositionRecord.class);
-                    DataSupport.deleteAll(CompreRecord.class);
-                    DataSupport.deleteAll(PointRecord.class);
-                    DataSupport.deleteAll(NoGpsInfo.class);
-                    DataSupport.deleteAll(RouteLog.class);
-
+                    deleteAll();
                     String proId = (String) pubData.getData().get("pr_route_id");
                     RouteLog log = new RouteLog();
                     log.setpRouteId(proId);
@@ -346,14 +350,18 @@ public class AMAPLocalizer implements AMapLocationListener {
                     Log.w(TAG, "paramStr = " + paramStr);
                     PubData pubData = new WebserviceClient().loadData(paramStr);
                     Log.w(TAG, "pubData.getCode() = " + pubData.getCode());
-                    if (pubData.getData() != null) {
-                        Log.w(TAG, "pubData.getData() = " + JSON.toJSONString(pubData.getData()));
-                        DataSupport.deleteAll(RouteLog.class);
-                        isStart = false;
-                        RouteFinishBus rfBus = new RouteFinishBus();
-                        rfBus.setRouteId(log.getpRouteId());
-                        rfBus.setFinishTime(DateStr.yyyymmddHHmmssStr());
-                        EventBus.getDefault().post(rfBus);
+                    if (pubData != null && "00".equals(pubData.getCode())) {
+                        if (pubData.getData() != null) {
+                            Log.w(TAG, "pubData.getData() = " + JSON.toJSONString(pubData.getData()));
+                            if (pubData.getData().get("msgCode") != null && "0".equals(pubData.getData().get("msgCode"))) {
+                                deleteAll();
+                                isStart = false;
+                                RouteFinishBus rfBus = new RouteFinishBus();
+                                rfBus.setRouteId(log.getpRouteId());
+                                rfBus.setFinishTime(DateStr.yyyymmddHHmmssStr());
+                                EventBus.getDefault().post(rfBus);
+                            }
+                        }
                     }
                 }
             }
