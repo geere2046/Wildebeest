@@ -318,7 +318,7 @@ public class AMAPLocalizer implements AMapLocationListener {
                 Map<String, Object> params = new HashMap<String, Object>();
                 params.put("sqlKey", "proc_init_route_info");
                 params.put("sqlType", "proc");
-                params.put("employeeId", employeeId);//TODO 员工ID需补充
+                params.put("employeeId", employeeId);
                 String paramStr = JSON.toJSONString(params);
                 PubData pubData = new WebserviceClient().updateData(paramStr);
                 if (pubData != null && "00".equals(pubData.getCode())) {
@@ -333,6 +333,9 @@ public class AMAPLocalizer implements AMapLocationListener {
         }.start();
     }
 
+    /**
+     * 完成线路算分
+     */
     void uploadFinishInfo() {
         new Thread() {
             public void run() {

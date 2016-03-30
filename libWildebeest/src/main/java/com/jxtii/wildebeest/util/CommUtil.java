@@ -24,7 +24,7 @@ public class CommUtil {
     public static final String ACC_STATE = "0";
     public static final String DEC_STATE = "1";
     public static final String UNKOWN_STATE = "2";
-    //以下为关键指标
+    //TODO 以下为关键指标 需放到属性表中
     public static final long GPS_BEARING = 60;//gps方向有效时间，需参考连续定位设置频率
     public static final float MIN_ACC = 0.01f;//线性加速度过滤阀值
     public static final long ACC_VALID_THRESHOLD = 300;//加速度最小持续时间(ms)

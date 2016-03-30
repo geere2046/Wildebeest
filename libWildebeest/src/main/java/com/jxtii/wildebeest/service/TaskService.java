@@ -24,6 +24,7 @@ import com.jxtii.wildebeest.model.PositionRecord;
 import com.jxtii.wildebeest.model.RouteLog;
 import com.jxtii.wildebeest.util.CommUtil;
 import com.jxtii.wildebeest.util.DateStr;
+import com.jxtii.wildebeest.util.DistanceUtil;
 import com.jxtii.wildebeest.webservice.WebserviceClient;
 
 import org.greenrobot.eventbus.EventBus;
@@ -71,7 +72,7 @@ public class TaskService extends Service {
             Log.w(TAG, ">>>>>>>onStartCommand intent is null");
 //            stopSelfSevice();
         } else {
-            interval = intent.getIntExtra("interval", 900);
+            interval = intent.getIntExtra("interval", 30 * 1000);
             Log.w(TAG, ">>>>>>>onStartCommand interval = " + interval);
             if (amapLocalizer != null)
                 amapLocalizer.setLocationManager(true, "gps", interval);
@@ -155,28 +156,7 @@ public class TaskService extends Service {
                         Log.w(TAG, "pubData.getData() = " + JSON.toJSONString(pubData.getData()));
                     }
                 }
-                Map<String, Object> paramAfter = new HashMap<String, Object>();
-                paramAfter.put("sqlKey", "nosql");
-                paramAfter.put("sqlType", "nosql");
-                paramAfter.put("rRouteId", log.getpRouteId());
-                paramAfter.put("rLat", this.amapLocationClone.getLatitude());
-                paramAfter.put("rLon", this.amapLocationClone.getLongitude());
-                paramAfter.put("rAlt", this.amapLocationClone.getAltitude());
-                paramAfter.put("rSpeed", this.amapLocationClone.getSpeed());
-                paramAfter.put("rAccelerate", 0);
-                paramAfter.put("addr", this.amapLocationClone.getAddress());
-                paramAfter.put("loctime", DateStr.yyyymmddHHmmssStr());
-                Map<String, Object> config = new HashMap<String, Object>();
-                config.put("interfaceName", "pjRouteLocation");
-                config.put("asyn", "false");
-                paramAfter.put("interfaceConfig", config);
-                String paramStr = JSON.toJSONString(paramAfter);
-                Log.w(TAG, "paramStr = " + paramStr);
-                PubData pubData = new WebserviceClient().loadData(paramStr);
-                Log.w(TAG, "pubData.getCode() = " + pubData.getCode());
-                if(pubData.getData() != null){
-                    Log.w(TAG, "pubData.getData() = " + JSON.toJSONString(pubData.getData()));
-                }
+                uploadRouteLocation(this.amapLocationClone, log);
                 this.amapLocationClone = null;
             } else {
                 params.put("rLat", 0.0);
@@ -187,6 +167,9 @@ public class TaskService extends Service {
         }
     }
 
+    /**
+     * 上报定位信息
+     */
     void uploadLocInfo() {
         try {
             String locinfo = (amapLocalizer != null) ? amapLocalizer.locinfo : "";
@@ -195,30 +178,9 @@ public class TaskService extends Service {
                 Log.w(TAG, locinfo);
             }
             if (this.amapLocation != null) {
-                Map<String, Object> params = new HashMap<String, Object>();
-                params.put("sqlKey", "nosql");
-                params.put("sqlType", "nosql");
                 RouteLog log = DataSupport.findLast(RouteLog.class);
                 if(log != null){
-                    params.put("rRouteId", log.getpRouteId());
-                    params.put("rLat", this.amapLocation.getLatitude());
-                    params.put("rLon", this.amapLocation.getLongitude());
-                    params.put("rAlt", this.amapLocation.getAltitude());
-                    params.put("rSpeed", this.amapLocation.getSpeed());
-                    params.put("rAccelerate", 0);
-                    params.put("addr", this.amapLocation.getAddress());
-                    params.put("loctime", DateStr.yyyymmddHHmmssStr());
-                    Map<String, Object> config = new HashMap<String, Object>();
-                    config.put("interfaceName", "pjRouteLocation");
-                    config.put("asyn", "false");
-                    params.put("interfaceConfig", config);
-                    String paramStr = JSON.toJSONString(params);
-                    Log.w(TAG, "paramStr = " + paramStr);
-                    PubData pubData = new WebserviceClient().loadData(paramStr);
-                    Log.w(TAG, "pubData.getCode() = " + pubData.getCode());
-                    if(pubData.getData() != null){
-                        Log.w(TAG, "pubData.getData() = " + JSON.toJSONString(pubData.getData()));
-                    }
+                    uploadRouteLocation(this.amapLocation, log);
                     this.amapLocation = null;
                 }
             }
@@ -227,6 +189,98 @@ public class TaskService extends Service {
         }
     }
 
+    void uploadRouteLocation(AMapLocation aMapLocation,RouteLog log) {
+        Map<String, Object> params = new HashMap<String, Object>();
+        params.put("sqlKey", "nosql");
+        params.put("sqlType", "nosql");
+        params.put("rRouteId", log.getpRouteId());
+        params.put("rLat", aMapLocation.getLatitude());
+        params.put("rLon", aMapLocation.getLongitude());
+        params.put("rAlt", aMapLocation.getAltitude());
+        params.put("rSpeed", aMapLocation.getSpeed());
+        params.put("rAccelerate", 0);
+        params.put("addr", aMapLocation.getAddress());
+        params.put("loctime", DateStr.yyyymmddHHmmssStr());
+        Map<String, Object> config = new HashMap<String, Object>();
+        config.put("interfaceName", "pjRouteLocation");
+        config.put("asyn", "false");
+        params.put("interfaceConfig", config);
+        String paramStr = JSON.toJSONString(params);
+        Log.d(TAG, "paramStr = " + paramStr);
+        PubData pubData = new WebserviceClient().loadData(paramStr);
+        Log.i(TAG, "pubData.getCode() = " + pubData.getCode());
+        if (pubData != null && "00".equals(pubData.getCode())) {
+            if (pubData.getData() != null) {
+                Log.i(TAG, "pubData.getData() = " + JSON.toJSONString(pubData.getData()));
+                if (pubData.getData().get("msgCode") != null && "2".equals(pubData.getData().get("msgCode").toString())) {
+                    Log.w(TAG, "调用结束路线逻辑");
+                    correctRouteFinish(log);
+                } else if (pubData.getData().get("msgCode") != null && "1".equals(pubData.getData().get("msgCode").toString())) {
+                    Log.i(TAG, "pubData.getData().msgContent = " + pubData.getData().get("msgContent").toString());
+                }
+            }
+        }
+    }
+
+    /**
+     * 过滤脏数据，修正路线结束信息
+     * @param log
+     */
+    void correctRouteFinish(RouteLog log) {
+        Map<String, Object> params = new HashMap<String, Object>();
+        params.put("sqlKey", "sql_max_location_time");
+        params.put("sqlType", "sql");
+        params.put("rRouteId", log.getpRouteId());
+        String paramStr = JSON.toJSONString(params);
+        Log.d(TAG, "paramStr = " + paramStr);
+        PubData pubData = new WebserviceClient().loadData(paramStr);
+        Log.i(TAG, "pubData.getCode() = " + pubData.getCode());
+        if (pubData != null && "00".equals(pubData.getCode())) {
+            if (pubData.getData() != null) {
+                Log.i(TAG, "pubData.getData() = " + JSON.toJSONString(pubData.getData()));
+                if (pubData.getData().get("location_time") != null) {
+                    String maxTime = pubData.getData().get("location_time").toString();
+                    DataSupport.deleteAll(PositionRecord.class, "dateStr >= ?", maxTime);
+                    List<PositionRecord> listIn = DataSupport.select("dateStr").order("dateStr desc").limit(1).find(PositionRecord.class);
+                    if (listIn != null && listIn.size() > 0) {
+                        CompreRecord cr = new CompreRecord();
+                        cr.setCurrentTime(listIn.get(0).getDateStr());
+                        CompreRecord lastCr = DataSupport.findLast(CompreRecord.class);
+                        if (lastCr != null) {
+                            List<PositionRecord> listSpeed = DataSupport.select("speed").order("speed desc").limit(1).find(PositionRecord.class);
+                            if (listSpeed != null && listSpeed.size() > 0) {
+                                cr.setMaxSpeed(listSpeed.get(0).getSpeed());
+                            } else {
+                                cr.setMaxSpeed(lastCr.getMaxSpeed());
+                            }
+                            List<PositionRecord> listAll = DataSupport.select("lat", "lng").order("dateStr desc").limit(1).find(PositionRecord.class);
+                            if (listAll != null && listAll.size() > 0) {
+                                float tr = 0;
+                                PositionRecord mid = null;
+                                for (PositionRecord pr : listAll) {
+                                    if (mid == null) {
+                                        mid = pr;
+                                    } else {
+                                        tr += (float) DistanceUtil.distance(pr.getLng(), pr.getLat(), mid.getLng(), mid.getLat());
+                                    }
+                                }
+                            } else {
+                                cr.setTravelMeter(lastCr.getTravelMeter());
+                            }
+                            cr.setSaveLat(lastCr.getSaveLat());
+                            cr.setSaveLng(lastCr.getSaveLng());
+                            cr.update(lastCr.getId());
+                        }
+                    }
+                }
+            }
+        }
+        uploadFinishInfo();
+    }
+
+    /**
+     * gps已关闭或超过CommUtil.NOGPS_TIME显示gps没信号或速度为0km/h
+     */
     void isNeedFinish(){
         Boolean isOpen = CommUtil.isOpenGPS(ctx);
         if(!isOpen){
@@ -247,6 +301,9 @@ public class TaskService extends Service {
         }
     }
 
+    /**
+     * 完成线路算分
+     */
     void uploadFinishInfo() {
         new Thread() {
             public void run() {
@@ -279,7 +336,6 @@ public class TaskService extends Service {
                                 rfBus.setRouteId(log.getpRouteId());
                                 rfBus.setFinishTime(DateStr.yyyymmddHHmmssStr());
                                 EventBus.getDefault().post(rfBus);
-                                stopSelfSevice();
                             }
                         }
                     }
@@ -296,28 +352,25 @@ public class TaskService extends Service {
         DataSupport.deleteAll(NoGpsInfo.class);
     }
 
-    @Override
     public void onDestroy() {
-        Log.w(TAG,">>>>>>>>  onDestroy");
+        Log.i(TAG, ">>>>>>>>  onDestroy");
         super.onDestroy();
-        stopSelfSevice();
+//        stopSelfSevice();
     }
 
-    @Override
     public void onLowMemory() {
-        Log.w(TAG,">>>>>>>>  onLowMemory");
+        Log.i(TAG,">>>>>>>>  onLowMemory");
         super.onLowMemory();
     }
 
-    @Override
     public void onTrimMemory(int level) {
-        Log.w(TAG,">>>>>>>>  onTrimMemory");
+        Log.i(TAG,">>>>>>>>  onTrimMemory");
         super.onTrimMemory(level);
     }
 
     void stopSelfSevice() {
-        Log.w(TAG,">>>>>>>>  stopSelfSevice");
-
+        Log.i(TAG,">>>>>>>>  stopSelfSevice");
+        //TODO 注释，可能影响服务正常启动
 //        if (amapLocalizer != null) {
 //            amapLocalizer.setLocationManager(false, "", 0);
 //        }
@@ -362,10 +415,7 @@ public class TaskService extends Service {
     public void releaseWakeLock() {
         Log.d(TAG, ">>>>>>取消点亮");
         if (m_wakeLockObj != null && m_wakeLockObj.isHeld()) {
-            m_wakeLockObj.setReferenceCounted(false);// 处理RuntimeException:
-            // WakeLock
-            // under-locked
-            // BaiDuLocReceiver
+            m_wakeLockObj.setReferenceCounted(false);
             m_wakeLockObj.release();
             m_wakeLockObj = null;
         }
