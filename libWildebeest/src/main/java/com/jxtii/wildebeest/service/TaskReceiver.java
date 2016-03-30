@@ -39,7 +39,7 @@ public class TaskReceiver extends BroadcastReceiver {
         Log.i(TAG, DateStr.HHmmssStr()+" _ startTaskService " + ctx.getPackageName());
         Intent intent = new Intent();
         intent.setAction(CommUtil.TASK_SERVICE_ACTION);
-        intent.setPackage(ctx.getPackageName());
+        intent.setPackage(ctx.getPackageName());//TODO 放到so中限制第三方用户使用
         //Implicit intents with startService are not safe
 //        intent.setClass(ctx, TaskService.class);
         intent.putExtra("interval", CommUtil.LOC_FREQ);
@@ -47,7 +47,7 @@ public class TaskReceiver extends BroadcastReceiver {
 
         Intent intent2 = new Intent();
         intent2.setAction(CommUtil.CORE_SERVICE_ACTION);
-        intent2.setPackage("com.yuzhi.fine");
+        intent2.setPackage(ctx.getPackageName());
         ctx.startService(intent2);
     }
 

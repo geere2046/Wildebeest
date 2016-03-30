@@ -101,7 +101,6 @@ public class AMAPLocalizer implements AMapLocationListener {
                 this.aMapLocationClient.onDestroy();
             }
             this.aMapLocationClient = null;
-            isStart = false;
         }
     }
 
@@ -195,6 +194,13 @@ public class AMAPLocalizer implements AMapLocationListener {
             }else{
                 flag = false;
             }*/
+
+            RouteLog log = DataSupport.findLast(RouteLog.class);
+            if(log == null){
+                isStart = false;
+            }else{
+                isStart = true;
+            }
 
             float curSpeed = 0;
             if (amapLocation.hasSpeed()) {
@@ -353,7 +359,10 @@ public class AMAPLocalizer implements AMapLocationListener {
                     if (pubData != null && "00".equals(pubData.getCode())) {
                         if (pubData.getData() != null) {
                             Log.w(TAG, "pubData.getData() = " + JSON.toJSONString(pubData.getData()));
-                            if (pubData.getData().get("msgCode") != null && "0".equals(pubData.getData().get("msgCode"))) {
+                            if (pubData.getData().get("msgCode") != null){
+                                Log.w(TAG, pubData.getData().get("msgCode") +"");
+                            }
+                            if (pubData.getData().get("msgCode") != null && "0".equals(pubData.getData().get("msgCode").toString())) {
                                 deleteAll();
                                 isStart = false;
                                 RouteFinishBus rfBus = new RouteFinishBus();

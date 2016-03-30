@@ -69,7 +69,7 @@ public class TaskService extends Service {
     public int onStartCommand(Intent intent, int flags, int startId) {
         if (intent == null) {
             Log.w(TAG, ">>>>>>>onStartCommand intent is null");
-            stopSelfSevice();
+//            stopSelfSevice();
         } else {
             interval = intent.getIntExtra("interval", 900);
             Log.w(TAG, ">>>>>>>onStartCommand interval = " + interval);
@@ -273,7 +273,7 @@ public class TaskService extends Service {
                     if (pubData != null && "00".equals(pubData.getCode())) {
                         if (pubData.getData() != null) {
                             Log.w(TAG, "pubData.getData() = " + JSON.toJSONString(pubData.getData()));
-                            if (pubData.getData().get("msgCode") != null && "0".equals(pubData.getData().get("msgCode"))) {
+                            if (pubData.getData().get("msgCode") != null && "0".equals(pubData.getData().get("msgCode").toString())) {
                                 deleteAll();
                                 RouteFinishBus rfBus = new RouteFinishBus();
                                 rfBus.setRouteId(log.getpRouteId());
@@ -318,19 +318,19 @@ public class TaskService extends Service {
     void stopSelfSevice() {
         Log.w(TAG,">>>>>>>>  stopSelfSevice");
 
-        if (amapLocalizer != null) {
-            amapLocalizer.setLocationManager(false, "", 0);
-        }
-        AlarmManager am = (AlarmManager) this
-                .getSystemService(Context.ALARM_SERVICE);
-        Intent intent = new Intent();
-        intent.setAction(CommUtil.START_INTENT);
-        intent.setPackage(ctx.getPackageName());
-        PendingIntent pendingIntent = PendingIntent.getBroadcast(this, 1,
-                intent, 0);
-        long triggerAtTime = SystemClock.elapsedRealtime() + 30 * 1000;
-        am.set(AlarmManager.ELAPSED_REALTIME_WAKEUP, triggerAtTime,
-                pendingIntent);
+//        if (amapLocalizer != null) {
+//            amapLocalizer.setLocationManager(false, "", 0);
+//        }
+//        AlarmManager am = (AlarmManager) this
+//                .getSystemService(Context.ALARM_SERVICE);
+//        Intent intent = new Intent();
+//        intent.setAction(CommUtil.START_INTENT);
+//        intent.setPackage(ctx.getPackageName());
+//        PendingIntent pendingIntent = PendingIntent.getBroadcast(this, 1,
+//                intent, 0);
+//        long triggerAtTime = SystemClock.elapsedRealtime() + 30 * 1000;
+//        am.set(AlarmManager.ELAPSED_REALTIME_WAKEUP, triggerAtTime,
+//                pendingIntent);
         stopTimer();
         EventBus.getDefault().unregister(this);
         this.stopSelf();
