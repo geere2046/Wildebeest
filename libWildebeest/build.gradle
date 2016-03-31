@@ -34,13 +34,26 @@ dependencies {
 }
 
 task makeJar(type: Copy) {
-    delete 'build/libs/wildebeest_V0.941_20160329.jar'
+    delete 'build/libs/wildebeest_V0.95_20160330.jar'
     from('build/intermediates/bundles/release/')
     into('build/libs/')
     include('classes.jar')
-    rename ('classes.jar', 'wildebeest_V0.95_20160330.jar')
+    rename ('classes.jar', 'wildebeest_V0.96_20160331.jar')
 }
 
 makeJar.dependsOn(build)
 //在终端执行生成JAR包
 // gradlew makeJar
+
+task clearJar(type: Delete) {
+    delete 'libs/wildebeest_V0.961_20160331'
+}
+task makeJarSc(type:org.gradle.api.tasks.bundling.Jar) {
+    baseName 'wildebeest_V0.961_20160331'
+    from('build/intermediates/classes/release/com/jxtii/wildebeest')
+    into('com/jxtii/wildebeest')
+    exclude('test/', 'BuildConfig.class', 'R.class')
+    //去掉R$开头的文件
+    exclude{ it.name.startsWith('R$');}
+}
+makeJarSc.dependsOn(clearJar, build)
