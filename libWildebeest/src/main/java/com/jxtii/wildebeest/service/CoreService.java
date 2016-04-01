@@ -1,5 +1,7 @@
 package com.jxtii.wildebeest.service;
 
+import android.app.AlarmManager;
+import android.app.PendingIntent;
 import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
@@ -9,6 +11,7 @@ import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
 import android.os.IBinder;
 import android.os.PowerManager;
+import android.os.SystemClock;
 import android.support.annotation.Nullable;
 import android.util.Log;
 
@@ -20,6 +23,8 @@ import com.jxtii.wildebeest.util.AccelerationEnum;
 import com.jxtii.wildebeest.util.CalPointUtil;
 import com.jxtii.wildebeest.util.CommUtil;
 import com.jxtii.wildebeest.util.DateStr;
+import com.jxtii.wildebeest.util.LogEnum;
+import com.jxtii.wildebeest.util.WriteLog;
 
 import org.apache.commons.math3.linear.Array2DRowRealMatrix;
 import org.apache.commons.math3.linear.ArrayRealVector;
@@ -59,10 +64,9 @@ public class CoreService extends Service implements SensorEventListener{
     int jCount = 0;
     int kCount = 0;
 
-    @Override
     public void onCreate() {
         super.onCreate();
-        Log.i(TAG, ">>>>>>>onCreate service");
+        logAndWrite(">>>>>>>onCreate service", LogEnum.WARN, true);
         ctx = CoreService.this;
         SensorManager manager = (SensorManager) ctx.getSystemService(ctx.SENSOR_SERVICE);
         //SENSOR_DELAY_UI 70ms
@@ -84,12 +88,12 @@ public class CoreService extends Service implements SensorEventListener{
         EventBus.getDefault().register(this);
     }
 
-    @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
         if (intent == null) {
-            Log.i(TAG, ">>>>>>>onStartCommand intent is null");
+            logAndWrite(">>>>>>>onStartCommand intent is null", LogEnum.INFO, true);
             stopSelfSevice();
         } else {
+            logAndWrite(">>>>>>>onStartCommand receive", LogEnum.INFO, true);
             stopTimer();
             if (mTimer == null)
                 mTimer = new Timer();
@@ -116,27 +120,34 @@ public class CoreService extends Service implements SensorEventListener{
         }
     }
 
-    @Override
     public void onDestroy() {
-        Log.i(TAG, ">>>>>>>>  onDestroy");
+        logAndWrite(">>>>>>>>  onDestroy", LogEnum.INFO, true);
         super.onDestroy();
         stopSelfSevice();
     }
 
-    @Override
     public void onLowMemory() {
-        Log.i(TAG, ">>>>>>>>  onLowMemory");
+        logAndWrite(">>>>>>>>  onLowMemory", LogEnum.INFO, true);
         super.onLowMemory();
     }
 
-    @Override
     public void onTrimMemory(int level) {
-        Log.i(TAG, ">>>>>>>>  onTrimMemory");
+        logAndWrite(">>>>>>>>  onTrimMemory", LogEnum.INFO, false);
         super.onTrimMemory(level);
     }
 
     void stopSelfSevice() {
-        Log.i(TAG,">>>>>>>>  stopSelfSevice");
+        logAndWrite(">>>>>>>>  stopSelfSevice", LogEnum.INFO, true);
+        AlarmManager am = (AlarmManager) this
+                .getSystemService(Context.ALARM_SERVICE);
+        Intent intent = new Intent();
+        intent.setAction(CommUtil.START_INTENT);
+        intent.setPackage(ctx.getPackageName());
+        PendingIntent pendingIntent = PendingIntent.getBroadcast(this, 2,
+                intent, 0);
+        long triggerAtTime = SystemClock.elapsedRealtime() + 30 * 1000;
+        am.set(AlarmManager.ELAPSED_REALTIME_WAKEUP, triggerAtTime,
+                pendingIntent);
         stopTimer();
         EventBus.getDefault().unregister(this);
         this.stopSelf();
@@ -172,14 +183,9 @@ public class CoreService extends Service implements SensorEventListener{
                 double clampGAve = clamp(gAve, 0.0, 1.0);
 
                 if (gAve > CommUtil.G_AVE) {
-                    Log.i(TAG, "gAve = " + gAve);
-                    Log.i(TAG, "clampGAve = " + clampGAve);
-                    Log.d(TAG, "event.values[0] = " + event.values[0]);
-                    Log.d(TAG, "event.values[1] = " + event.values[1]);
-                    Log.d(TAG, "event.values[2] = " + event.values[2]);
-                    Log.d(TAG, "gValue[0] = " + gValue[0]);
-                    Log.d(TAG, "gValue[1] = " + gValue[1]);
-                    Log.d(TAG, "gValue[2] = " + gValue[2]);
+                    logAndWrite("gAve=" + gAve + ";clampGAve=" + clampGAve, LogEnum.INFO, false);
+                    logAndWrite("event.values[0]=" + event.values[0] + ";event.values[1]=" + event.values[1] + ";event.values[02]=" + event.values[2], LogEnum.DEBUG, false);
+                    logAndWrite("gValue[0]=" + gValue[0] + ";gValue[1]=" + gValue[1] + ";gValue[02]=" + gValue[2], LogEnum.DEBUG, false);
                 } else {
                     gValue[0] = 0;
                     gValue[1] = 0;
@@ -204,12 +210,6 @@ public class CoreService extends Service implements SensorEventListener{
             values[1] = (float) Math.toDegrees(values[1]);
             values[2] = (float) Math.toDegrees(values[2]);
 
-
-//            Log.i(TAG, ">>>> iCount = " + iCount + " jCount = " + jCount + " kCount = " + kCount);
-//                Log.d(TAG, "values[0] = " + values[0]);
-//                Log.d(TAG, "values[1] = " + values[1]);
-//                Log.d(TAG, "values[2] = " + values[2]);
-
             if (this.pushBus != null) {
                 String nowTime = DateStr.yyyymmddHHmmssStr();
                 Boolean isValid = CommUtil.timeSpanSecond(this.pushBus.getCreateTime(), nowTime) > gpsBearing ? false : true;
@@ -233,7 +233,7 @@ public class CoreService extends Service implements SensorEventListener{
                     double[][] vDirect = earth2phone.getData();
                     double[] vDir = {vDirect[0][0], vDirect[0][1], vDirect[0][2]};
                     if (gValue[0] == 0 && gValue[1] == 0 && gValue[2] == 0) {
-                        Log.i(TAG, "acceleration is too low");
+                        logAndWrite("acceleration is too low", LogEnum.INFO, false);
                     } else {
                         double[] aDir = {Double.parseDouble(String.valueOf(gValue[0])),
                                 Double.parseDouble(String.valueOf(gValue[1])),
@@ -242,7 +242,7 @@ public class CoreService extends Service implements SensorEventListener{
                         ArrayRealVector vfc = new ArrayRealVector(vDir);
                         ArrayRealVector vSc = new ArrayRealVector(aDir);
                         double cosine = vfc.cosine(vSc);
-                        Log.w(TAG, "cosine = " + cosine);
+                        logAndWrite("cosine = ", LogEnum.WARN, false);
 
                         double gAve = Math.abs(Math.sqrt(gValue[0] * gValue[0] + gValue[1] * gValue[1] + gValue[2] * gValue[2]));
                         double clampGAve = clamp(gAve, 0.0, 1.0);
@@ -252,13 +252,13 @@ public class CoreService extends Service implements SensorEventListener{
                         pointRecord.setRecord((float) clampGAve);
 
                         if (cosine == 0) {
-                            Log.d(TAG, "瞬时力与速度垂直");
+                            logAndWrite("瞬时力与速度垂直", LogEnum.INFO, false);
                             accJudgeBean = new AccJudgeBean();
                             accJudgeBean.setAccState(AccelerationEnum.UNKOWN_STATE);
                             accJudgeBean.setBeginTime(System.currentTimeMillis());
                             accJudgeBean.setDuration(0);
                         } else if (cosine > 0) {
-                            Log.d(TAG, "瞬时加速");
+                            logAndWrite("瞬时加速", LogEnum.INFO, false);
                             if(accJudgeBean == null){
                                 accJudgeBean = new AccJudgeBean();
                                 accJudgeBean.setAccState(AccelerationEnum.ACC_STATE);
@@ -269,9 +269,9 @@ public class CoreService extends Service implements SensorEventListener{
                                     case ACC_STATE:
                                         long duration = System.currentTimeMillis() - accJudgeBean.getBeginTime();
                                         if(duration > CommUtil.ACC_VALID_THRESHOLD){
-                                            Log.w(TAG, "持续加速");
+                                            logAndWrite("持续加速", LogEnum.WARN, true);
                                             int pr = DataSupport.count(PointRecord.class);
-                                            Log.w(TAG, "PointRecord count = " + pr);
+                                            logAndWrite("PointRecord count = " + pr, LogEnum.WARN, false);
 
                                             accJudgeBean = null;
                                             pointRecord.setEventType(2);
@@ -302,7 +302,7 @@ public class CoreService extends Service implements SensorEventListener{
                                 }
                             }
                         } else {
-                            Log.d(TAG, "瞬时减速");
+                            logAndWrite("瞬时减速", LogEnum.INFO, false);
                             if(accJudgeBean == null){
                                 accJudgeBean = new AccJudgeBean();
                                 accJudgeBean.setAccState(AccelerationEnum.DEC_STATE);
@@ -319,9 +319,9 @@ public class CoreService extends Service implements SensorEventListener{
                                     case DEC_STATE:
                                         long duration = System.currentTimeMillis() - accJudgeBean.getBeginTime();
                                         if(duration > CommUtil.ACC_VALID_THRESHOLD){
-                                            Log.w(TAG, "持续减速");
+                                            logAndWrite("持续减速", LogEnum.WARN, true);
                                             int pr = DataSupport.count(PointRecord.class);
-                                            Log.w(TAG, "PointRecord count = " + pr);
+                                            logAndWrite("PointRecord count = " + pr, LogEnum.WARN, false);
 
                                             accJudgeBean = null;
                                             pointRecord.setEventType(3);
@@ -348,10 +348,10 @@ public class CoreService extends Service implements SensorEventListener{
                         }
                     }
                 } else {
-                    Log.w(TAG, "this.pushBus invalid");
+                    logAndWrite("this.pushBus invalid", LogEnum.WARN, false);
                 }
             } else {
-//                Log.w(TAG, "this.pushBus is null");
+//                logAndWrite("this.pushBus is null", LogEnum.WARN, false);
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -360,7 +360,7 @@ public class CoreService extends Service implements SensorEventListener{
 
     @Subscribe(threadMode = ThreadMode.POSTING)
     public void onEvent(GpsInfoBus gpsInfoBus){
-        Log.i(TAG, gpsInfoBus.toStr());
+        logAndWrite(gpsInfoBus.toStr(), LogEnum.INFO, false);
         this.pushBus = gpsInfoBus;
 
     }
@@ -407,7 +407,7 @@ public class CoreService extends Service implements SensorEventListener{
     }
 
     public void acquireWakeLock(Context cxt) {
-        Log.d(TAG, ">>>>>>点亮屏幕");
+        logAndWrite(">>>>>>点亮屏幕", LogEnum.VERBOSE, false);
         if (m_wakeLockObj == null) {
             PowerManager pm = (PowerManager) cxt
                     .getSystemService(Context.POWER_SERVICE);
@@ -419,7 +419,7 @@ public class CoreService extends Service implements SensorEventListener{
     }
 
     public void releaseWakeLock() {
-        Log.d(TAG, ">>>>>>取消点亮");
+        logAndWrite(">>>>>>取消点亮", LogEnum.VERBOSE, false);
         if (m_wakeLockObj != null && m_wakeLockObj.isHeld()) {
             m_wakeLockObj.setReferenceCounted(false);// 处理RuntimeException:
             // WakeLock
@@ -427,6 +427,51 @@ public class CoreService extends Service implements SensorEventListener{
             // BaiDuLocReceiver
             m_wakeLockObj.release();
             m_wakeLockObj = null;
+        }
+    }
+
+    /**
+     * 记录本地日志
+     *
+     * @param log
+     */
+    void writeLog(final String log) {
+        new Thread() {
+            public void run() {
+                WriteLog.getInstance().write(TAG, log);
+            }
+        }.start();
+    }
+
+    /**
+     * 打印和记录日志
+     *
+     * @param log
+     * @param level
+     * @param needWrite
+     */
+    void logAndWrite(String log,LogEnum level,Boolean needWrite) {
+        switch (level) {
+            case VERBOSE:
+                Log.v(TAG,log);
+                if(needWrite)
+                    writeLog(log);
+                break;
+            case DEBUG:
+                Log.d(TAG,log);
+                if(needWrite)
+                    writeLog(log);
+                break;
+            case INFO:
+                Log.i(TAG,log);
+                if(needWrite)
+                    writeLog(log);
+                break;
+            case WARN:
+                Log.w(TAG,log);
+                if(needWrite)
+                    writeLog(log);
+                break;
         }
     }
 }

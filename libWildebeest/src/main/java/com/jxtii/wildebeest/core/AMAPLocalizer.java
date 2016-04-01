@@ -24,6 +24,8 @@ import com.jxtii.wildebeest.util.CalPointUtil;
 import com.jxtii.wildebeest.util.CommUtil;
 import com.jxtii.wildebeest.util.DateStr;
 import com.jxtii.wildebeest.util.DistanceUtil;
+import com.jxtii.wildebeest.util.LogEnum;
+import com.jxtii.wildebeest.util.WriteLog;
 import com.jxtii.wildebeest.webservice.WebserviceClient;
 
 import org.greenrobot.eventbus.EventBus;
@@ -89,10 +91,10 @@ public class AMAPLocalizer implements AMapLocationListener {
         if (swit && this.aMapLocationClient != null) {
             setLocationOption(locMode, minTime);
             if(!aMapLocationClient.isStarted()){
-                Log.i(TAG, "AMapLocationClient start");
+                logAndWrite("AMapLocationClient start",LogEnum.INFO,true);
                 aMapLocationClient.startLocation();
             }else{
-                Log.w(TAG,"AMapLocationClient haved start");
+                logAndWrite("AMapLocationClient haved start", LogEnum.INFO, true);
             }
         } else {
             if (this.aMapLocationClient != null) {
@@ -108,19 +110,19 @@ public class AMAPLocalizer implements AMapLocationListener {
         AMapLocationClientOption locationOption = new AMapLocationClientOption();
         if (TextUtils.isEmpty(locMode)) {
             locationOption.setLocationMode(AMapLocationClientOption.AMapLocationMode.Device_Sensors);
-            Log.i(TAG,"Device_Sensors");
+            logAndWrite("Device_Sensors", LogEnum.INFO, true);
         } else {
             if ("low".equalsIgnoreCase(locMode)) {
                 locationOption.setLocationMode(AMapLocationClientOption.AMapLocationMode.Battery_Saving);
-                Log.i(TAG,"Battery_Saving");
+                logAndWrite("Battery_Saving", LogEnum.INFO, true);
             } else if ("gps".equalsIgnoreCase(locMode)) {
                 locationOption.setLocationMode(AMapLocationClientOption.AMapLocationMode.Device_Sensors);
-                Log.i(TAG,"Device_Sensors");
+                logAndWrite("Device_Sensors", LogEnum.INFO, true);
             } else {
                 //设置该选项将延长定位返回时长30s，仅在高精度模式单次定位下有效
                 locationOption.setGpsFirst(true);
                 locationOption.setLocationMode(AMapLocationClientOption.AMapLocationMode.Hight_Accuracy);
-                Log.i(TAG,"Hight_Accuracy");
+                logAndWrite("Hight_Accuracy", LogEnum.INFO, true);
             }
         }
         if (minTime < 900) {
@@ -140,14 +142,11 @@ public class AMAPLocalizer implements AMapLocationListener {
 
     public void onLocationChanged(AMapLocation amapLocation) {
 
-        Log.w(TAG, amapLocation.toStr());
         EventBus.getDefault().post(amapLocation);
 
         if (amapLocation != null && amapLocation.getErrorCode() == 0) {
+            logAndWrite("amapLocation.getProvider() = " + amapLocation.getProvider(), LogEnum.INFO, true);
             String extra = "";
-//            Log.w(TAG,
-//                    "amapLocation.getProvider() = "
-//                            + amapLocation.getProvider());
             if ("gps".equals(amapLocation.getProvider())) {
                 extra = "定位结果来自GPS信号";
                 if (amapLocation.getSatellites() != 0)
@@ -185,8 +184,7 @@ public class AMAPLocalizer implements AMapLocationListener {
             Double geoLng = amapLocation.getLongitude();
             locinfo = geoLat + ";" + geoLng + ";定位器不做地址解析;"
                     + amapLocation.getProvider() + ";" + extra;
-            Log.i(TAG, "locinfo = " + locinfo);
-
+            logAndWrite("locinfo = " + locinfo, LogEnum.INFO, false);
             /*//TODO 模拟速度超过10km/h时启动
             if(flag&& !isStart){
                 uploadInitInfo();
@@ -244,7 +242,7 @@ public class AMAPLocalizer implements AMapLocationListener {
                 pr.save();
 
                 int crCount = DataSupport.count(CompreRecord.class);
-                Log.d(TAG, ">>>>>>>>>>>>>" + crCount);
+                logAndWrite("CompreRecord count = " + crCount, LogEnum.DEBUG, false);
                 if (crCount == 0) {
                     CompreRecord cr = new CompreRecord();
                     cr.setBeginTime(DateStr.yyyymmddHHmmssStr());
@@ -288,15 +286,15 @@ public class AMAPLocalizer implements AMapLocationListener {
                 }
             }
         } else if (amapLocation != null && amapLocation.getErrorCode() != 0) {
-            Log.w(TAG,
-                    "amapLocation.getErrorCode() = "
-                            + amapLocation.getErrorCode()
-                            + " amapLocation.getErrorInfo() = "
-                            + amapLocation.getErrorInfo());
+            logAndWrite("amapLocation.getErrorCode() = "
+                    + amapLocation.getErrorCode()
+                    + " amapLocation.getErrorInfo() = "
+                    + amapLocation.getErrorInfo(), LogEnum.WARN, true);
             // 华为8817e实测 错误12：缺少定位权限，请给app授予定位权限。判断无效，监听无返回，没有错误抛出
             locinfo = amapLocation.getErrorCode() + "_"
                     + amapLocation.getErrorInfo();
         } else {
+            logAndWrite("获取定位信息失败", LogEnum.WARN, true);
             locinfo = "获取定位信息失败";
         }
     }
@@ -310,6 +308,7 @@ public class AMAPLocalizer implements AMapLocationListener {
     }
 
     void uploadInitInfo() {
+        logAndWrite("uploadInitInfo", LogEnum.INFO, true);
         new Thread() {
             public void run() {
                 SharedPreferences sp = ctx.getApplicationContext()
@@ -337,6 +336,7 @@ public class AMAPLocalizer implements AMapLocationListener {
      * 完成线路算分
      */
     void uploadFinishInfo() {
+        logAndWrite("uploadFinishInfo", LogEnum.INFO, true);
         new Thread() {
             public void run() {
                 RouteLog log = DataSupport.findLast(RouteLog.class);
@@ -356,14 +356,14 @@ public class AMAPLocalizer implements AMapLocationListener {
                     config.put("asyn", "false");
                     paramAfter.put("interfaceConfig", config);
                     String paramStr = JSON.toJSONString(paramAfter);
-                    Log.w(TAG, "paramStr = " + paramStr);
+                    logAndWrite("paramStr = " + paramStr, LogEnum.WARN, false);
                     PubData pubData = new WebserviceClient().loadData(paramStr);
-                    Log.w(TAG, "pubData.getCode() = " + pubData.getCode());
+                    logAndWrite("pubData.getCode() = " + pubData.getCode(), LogEnum.WARN, false);
                     if (pubData != null && "00".equals(pubData.getCode())) {
                         if (pubData.getData() != null) {
-                            Log.w(TAG, "pubData.getData() = " + JSON.toJSONString(pubData.getData()));
+                            logAndWrite("pubData.getData() = " + JSON.toJSONString(pubData.getData()), LogEnum.INFO, false);
                             if (pubData.getData().get("msgCode") != null){
-                                Log.w(TAG, pubData.getData().get("msgCode") +"");
+                                logAndWrite(pubData.getData().get("msgCode") +"", LogEnum.WARN, true);
                             }
                             if (pubData.getData().get("msgCode") != null && "0".equals(pubData.getData().get("msgCode").toString())) {
                                 deleteAll();
@@ -381,6 +381,7 @@ public class AMAPLocalizer implements AMapLocationListener {
     }
 
     void validNoGpsInfo() {
+        logAndWrite("validNoGpsInfo", LogEnum.INFO, true);
         if (isStart) {
             NoGpsInfo noGpsInfo = null;
             List<NoGpsInfo> listInfo = DataSupport.select("id", "noGpsTime").order("noGpsTime desc").limit(2).find(NoGpsInfo.class);
@@ -398,6 +399,51 @@ public class AMAPLocalizer implements AMapLocationListener {
                     uploadFinishInfo();
                 }
             }
+        }
+    }
+
+    /**
+     * 记录本地日志
+     *
+     * @param log
+     */
+    void writeLog(final String log) {
+        new Thread() {
+            public void run() {
+                WriteLog.getInstance().write(TAG, log);
+            }
+        }.start();
+    }
+
+    /**
+     * 打印和记录日志
+     *
+     * @param log
+     * @param level
+     * @param needWrite
+     */
+    void logAndWrite(String log,LogEnum level,Boolean needWrite) {
+        switch (level) {
+            case VERBOSE:
+                Log.v(TAG,log);
+                if(needWrite)
+                    writeLog(log);
+                break;
+            case DEBUG:
+                Log.d(TAG,log);
+                if(needWrite)
+                    writeLog(log);
+                break;
+            case INFO:
+                Log.i(TAG,log);
+                if(needWrite)
+                    writeLog(log);
+                break;
+            case WARN:
+                Log.w(TAG,log);
+                if(needWrite)
+                    writeLog(log);
+                break;
         }
     }
 }

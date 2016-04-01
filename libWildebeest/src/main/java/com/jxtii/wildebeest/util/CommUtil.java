@@ -18,12 +18,13 @@ public class CommUtil {
     public static final String START_INTENT = "com.jxtii.wildebeest.task_receiver";
     public static final String STOP_INTENT = "com.jxtii.wildebeest.stop_receiver";
     public static final String TASK_SERVICE = "com.jxtii.wildebeest.service.TaskService";
+    public static final String CORE_SERVICE = "com.jxtii.wildebeest.service.CoreService";
     public static final String TASK_SERVICE_ACTION = "com.jxtii.wildebeest.task_service";
     public static final String CORE_SERVICE_ACTION = "com.jxtii.wildebeest.core_service";
-    //以下为枚举参数
-    public static final String ACC_STATE = "0";
-    public static final String DEC_STATE = "1";
-    public static final String UNKOWN_STATE = "2";
+    //以下为加速度类型
+//    public static final String ACC_STATE = "0";
+//    public static final String DEC_STATE = "1";
+//    public static final String UNKOWN_STATE = "2";
     //TODO 以下为关键指标 需放到属性表中
     public static final long GPS_BEARING = 60;//gps方向有效时间，需参考连续定位设置频率
     public static final float MIN_ACC = 0.01f;//线性加速度过滤阀值

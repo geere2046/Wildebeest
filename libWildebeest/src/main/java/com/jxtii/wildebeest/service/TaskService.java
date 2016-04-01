@@ -25,6 +25,8 @@ import com.jxtii.wildebeest.model.RouteLog;
 import com.jxtii.wildebeest.util.CommUtil;
 import com.jxtii.wildebeest.util.DateStr;
 import com.jxtii.wildebeest.util.DistanceUtil;
+import com.jxtii.wildebeest.util.LogEnum;
+import com.jxtii.wildebeest.util.WriteLog;
 import com.jxtii.wildebeest.webservice.WebserviceClient;
 
 import org.greenrobot.eventbus.EventBus;
@@ -57,23 +59,21 @@ public class TaskService extends Service {
         return null;
     }
 
-    @Override
     public void onCreate() {
         super.onCreate();
-        Log.w(TAG, ">>>>>>>onCreate service");
+        logAndWrite(">>>>>>>onCreate service", LogEnum.WARN, true);
         ctx = TaskService.this;
         amapLocalizer = AMAPLocalizer.getInstance(ctx);
         EventBus.getDefault().register(this);
     }
 
-    @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
         if (intent == null) {
-            Log.w(TAG, ">>>>>>>onStartCommand intent is null");
-//            stopSelfSevice();
+            logAndWrite(">>>>>>>onStartCommand intent is null", LogEnum.WARN, true);
+            stopSelfSevice();
         } else {
             interval = intent.getIntExtra("interval", 30 * 1000);
-            Log.w(TAG, ">>>>>>>onStartCommand interval = " + interval);
+            logAndWrite(">>>>>>>onStartCommand interval = " + interval, LogEnum.WARN, true);
             if (amapLocalizer != null)
                 amapLocalizer.setLocationManager(true, "gps", interval);
             stopTimer();
@@ -97,14 +97,14 @@ public class TaskService extends Service {
 
     @Subscribe(threadMode = ThreadMode.POSTING)
     public void oreceiveAMapLocation(AMapLocation amapLocation){
-        Log.w(TAG, "AMapLocation is " + amapLocation.toStr());
+        logAndWrite("AMapLocation is " + amapLocation.toStr(), LogEnum.WARN, false);
         this.amapLocation = amapLocation;
         this.amapLocationClone = amapLocation;
     }
 
     @Subscribe(threadMode = ThreadMode.ASYNC)
     public void receivePointRecordBus(PointRecordBus bus) {
-        Log.w(TAG, "PointRecordBus is " + bus.toStr());
+        logAndWrite("PointRecordBus is " + bus.toStr(), LogEnum.WARN, false);
         Map<String, Object> params = new HashMap<String, Object>();
         RouteLog log = DataSupport.findLast(RouteLog.class);
         if (log != null) {
@@ -125,11 +125,12 @@ public class TaskService extends Service {
                     config.put("asyn", "false");
                     params.put("interfaceConfig", config);
                     String paramStr = JSON.toJSONString(params);
-                    Log.w(TAG, "paramStr = " + paramStr);
+                    logAndWrite("paramStr = " + paramStr, LogEnum.WARN, false);
                     PubData pubData = new WebserviceClient().loadData(paramStr);
-                    Log.w(TAG, "pubData.getCode() = " + pubData.getCode());
+                    logAndWrite("upload pjRouteFactorSpeeding", LogEnum.INFO, true);
+                    logAndWrite("pubData.getCode() = " + pubData.getCode(), LogEnum.WARN, false);
                     if(pubData.getData() != null){
-                        Log.w(TAG, "pubData.getData() = " + JSON.toJSONString(pubData.getData()));
+                        logAndWrite("pubData.getData() = " + JSON.toJSONString(pubData.getData()), LogEnum.WARN, false);
                     }
                 } else {
                     if (bus.getEventType() == 2) {
@@ -149,11 +150,12 @@ public class TaskService extends Service {
                     config.put("asyn", "false");
                     params.put("interfaceConfig", config);
                     String paramStr = JSON.toJSONString(params);
-                    Log.w(TAG, "paramStr = " + paramStr);
+                    logAndWrite("paramStr = " + paramStr, LogEnum.WARN, false);
                     PubData pubData = new WebserviceClient().loadData(paramStr);
-                    Log.w(TAG, "pubData.getCode() = " + pubData.getCode());
+                    logAndWrite("upload pjRouteFactorInterface", LogEnum.INFO, true);
+                    logAndWrite("pubData.getCode() = " + pubData.getCode(), LogEnum.WARN, false);
                     if(pubData.getData() != null){
-                        Log.w(TAG, "pubData.getData() = " + JSON.toJSONString(pubData.getData()));
+                        logAndWrite("pubData.getData() = " + JSON.toJSONString(pubData.getData()), LogEnum.WARN, false);
                     }
                 }
                 uploadRouteLocation(this.amapLocationClone, log);
@@ -162,7 +164,7 @@ public class TaskService extends Service {
                 params.put("rLat", 0.0);
                 params.put("rLon", 0.0);
                 params.put("rAlt", 0.0);
-                Log.i(TAG, "this.amapLocationClone is null");
+                logAndWrite("this.amapLocationClone is null", LogEnum.INFO, true);
             }
         }
     }
@@ -175,7 +177,7 @@ public class TaskService extends Service {
             String locinfo = (amapLocalizer != null) ? amapLocalizer.locinfo : "";
             if (!TextUtils.isEmpty(locinfo)) {
                 locinfo = "";
-                Log.w(TAG, locinfo);
+                logAndWrite("locinfo is " + locinfo, LogEnum.INFO, false);
             }
             if (this.amapLocation != null) {
                 RouteLog log = DataSupport.findLast(RouteLog.class);
@@ -206,17 +208,18 @@ public class TaskService extends Service {
         config.put("asyn", "false");
         params.put("interfaceConfig", config);
         String paramStr = JSON.toJSONString(params);
-        Log.d(TAG, "paramStr = " + paramStr);
+        logAndWrite("paramStr = " + paramStr, LogEnum.DEBUG, false);
         PubData pubData = new WebserviceClient().loadData(paramStr);
-        Log.i(TAG, "pubData.getCode() = " + pubData.getCode());
+        logAndWrite("upload pjRouteLocation", LogEnum.INFO, true);
+        logAndWrite("pubData.getCode() = " + pubData.getCode(), LogEnum.INFO, false);
         if (pubData != null && "00".equals(pubData.getCode())) {
             if (pubData.getData() != null) {
-                Log.i(TAG, "pubData.getData() = " + JSON.toJSONString(pubData.getData()));
+                logAndWrite("pubData.getData() = " + JSON.toJSONString(pubData.getData()), LogEnum.INFO, false);
                 if (pubData.getData().get("msgCode") != null && "2".equals(pubData.getData().get("msgCode").toString())) {
-                    Log.w(TAG, "调用结束路线逻辑");
+                    logAndWrite("调用结束路线逻辑", LogEnum.WARN, true);
                     correctRouteFinish(log);
                 } else if (pubData.getData().get("msgCode") != null && "1".equals(pubData.getData().get("msgCode").toString())) {
-                    Log.i(TAG, "pubData.getData().msgContent = " + pubData.getData().get("msgContent").toString());
+                    logAndWrite("pubData.getData().msgContent = " + pubData.getData().get("msgContent").toString(), LogEnum.INFO, false);
                 }
             }
         }
@@ -227,17 +230,18 @@ public class TaskService extends Service {
      * @param log
      */
     void correctRouteFinish(RouteLog log) {
+        logAndWrite("correctRouteFinish", LogEnum.INFO, true);
         Map<String, Object> params = new HashMap<String, Object>();
         params.put("sqlKey", "sql_max_location_time");
         params.put("sqlType", "sql");
         params.put("rRouteId", log.getpRouteId());
         String paramStr = JSON.toJSONString(params);
-        Log.d(TAG, "paramStr = " + paramStr);
+        logAndWrite("paramStr = " + paramStr, LogEnum.WARN, false);
         PubData pubData = new WebserviceClient().loadData(paramStr);
-        Log.i(TAG, "pubData.getCode() = " + pubData.getCode());
+        logAndWrite("pubData.getCode() = " + pubData.getCode(), LogEnum.WARN, false);
         if (pubData != null && "00".equals(pubData.getCode())) {
             if (pubData.getData() != null) {
-                Log.i(TAG, "pubData.getData() = " + JSON.toJSONString(pubData.getData()));
+                logAndWrite("pubData.getData() = " + JSON.toJSONString(pubData.getData()), LogEnum.INFO, false);
                 if (pubData.getData().get("location_time") != null) {
                     String maxTime = pubData.getData().get("location_time").toString();
                     DataSupport.deleteAll(PositionRecord.class, "dateStr >= ?", maxTime);
@@ -284,6 +288,7 @@ public class TaskService extends Service {
     void isNeedFinish(){
         Boolean isOpen = CommUtil.isOpenGPS(ctx);
         if(!isOpen){
+            logAndWrite("gps closed", LogEnum.INFO, true);
             uploadFinishInfo();
         }else{
             NoGpsInfo noGpsInfo = null;
@@ -295,6 +300,7 @@ public class TaskService extends Service {
                 String last = noGpsInfo.getNoGpsTime();
                 long max = CommUtil.timeSpanSecond(last, DateStr.yyyymmddHHmmssStr());
                 if (max > CommUtil.NOGPS_TIME) {
+                    logAndWrite(max+">"+CommUtil.NOGPS_TIME+"&&last="+last, LogEnum.INFO, true);
                     uploadFinishInfo();
                 }
             }
@@ -305,6 +311,7 @@ public class TaskService extends Service {
      * 完成线路算分
      */
     void uploadFinishInfo() {
+        logAndWrite("uploadFinishInfo", LogEnum.INFO, true);
         new Thread() {
             public void run() {
                 RouteLog log = DataSupport.findLast(RouteLog.class);
@@ -324,12 +331,12 @@ public class TaskService extends Service {
                     config.put("asyn", "false");
                     paramAfter.put("interfaceConfig", config);
                     String paramStr = JSON.toJSONString(paramAfter);
-                    Log.w(TAG, "paramStr = " + paramStr);
+                    logAndWrite("paramStr = " + paramStr, LogEnum.WARN, false);
                     PubData pubData = new WebserviceClient().loadData(paramStr);
-                    Log.w(TAG, "pubData.getCode() = " + pubData.getCode());
+                    logAndWrite("pubData.getCode() = " + pubData.getCode(), LogEnum.WARN, false);
                     if (pubData != null && "00".equals(pubData.getCode())) {
                         if (pubData.getData() != null) {
-                            Log.w(TAG, "pubData.getData() = " + JSON.toJSONString(pubData.getData()));
+                            logAndWrite("pubData.getData() = " + JSON.toJSONString(pubData.getData()), LogEnum.INFO, false);
                             if (pubData.getData().get("msgCode") != null && "0".equals(pubData.getData().get("msgCode").toString())) {
                                 deleteAll();
                                 RouteFinishBus rfBus = new RouteFinishBus();
@@ -353,37 +360,36 @@ public class TaskService extends Service {
     }
 
     public void onDestroy() {
-        Log.i(TAG, ">>>>>>>>  onDestroy");
+        logAndWrite(">>>>>>>>  onDestroy", LogEnum.INFO, true);
         super.onDestroy();
-//        stopSelfSevice();
+        stopSelfSevice();
     }
 
     public void onLowMemory() {
-        Log.i(TAG,">>>>>>>>  onLowMemory");
+        logAndWrite(">>>>>>>>  onLowMemory", LogEnum.INFO, true);
         super.onLowMemory();
     }
 
     public void onTrimMemory(int level) {
-        Log.i(TAG,">>>>>>>>  onTrimMemory");
+        logAndWrite(">>>>>>>>  onTrimMemory", LogEnum.INFO, false);
         super.onTrimMemory(level);
     }
 
     void stopSelfSevice() {
-        Log.i(TAG,">>>>>>>>  stopSelfSevice");
-        //TODO 注释，可能影响服务正常启动
-//        if (amapLocalizer != null) {
-//            amapLocalizer.setLocationManager(false, "", 0);
-//        }
-//        AlarmManager am = (AlarmManager) this
-//                .getSystemService(Context.ALARM_SERVICE);
-//        Intent intent = new Intent();
-//        intent.setAction(CommUtil.START_INTENT);
-//        intent.setPackage(ctx.getPackageName());
-//        PendingIntent pendingIntent = PendingIntent.getBroadcast(this, 1,
-//                intent, 0);
-//        long triggerAtTime = SystemClock.elapsedRealtime() + 30 * 1000;
-//        am.set(AlarmManager.ELAPSED_REALTIME_WAKEUP, triggerAtTime,
-//                pendingIntent);
+        logAndWrite(">>>>>>>>  stopSelfSevice", LogEnum.INFO, true);
+        if (amapLocalizer != null) {
+            amapLocalizer.setLocationManager(false, "", 0);
+        }
+        AlarmManager am = (AlarmManager) this
+                .getSystemService(Context.ALARM_SERVICE);
+        Intent intent = new Intent();
+        intent.setAction(CommUtil.START_INTENT);
+        intent.setPackage(ctx.getPackageName());
+        PendingIntent pendingIntent = PendingIntent.getBroadcast(this, 1,
+                intent, 0);
+        long triggerAtTime = SystemClock.elapsedRealtime() + 30 * 1000;
+        am.set(AlarmManager.ELAPSED_REALTIME_WAKEUP, triggerAtTime,
+                pendingIntent);
         stopTimer();
         EventBus.getDefault().unregister(this);
         this.stopSelf();
@@ -401,7 +407,7 @@ public class TaskService extends Service {
     }
 
     public void acquireWakeLock(Context cxt) {
-        Log.d(TAG, ">>>>>>点亮屏幕");
+        logAndWrite(">>>>>>点亮屏幕", LogEnum.VERBOSE, false);
         if (m_wakeLockObj == null) {
             PowerManager pm = (PowerManager) cxt
                     .getSystemService(Context.POWER_SERVICE);
@@ -413,11 +419,56 @@ public class TaskService extends Service {
     }
 
     public void releaseWakeLock() {
-        Log.d(TAG, ">>>>>>取消点亮");
+        logAndWrite(">>>>>>取消点亮", LogEnum.VERBOSE, false);
         if (m_wakeLockObj != null && m_wakeLockObj.isHeld()) {
             m_wakeLockObj.setReferenceCounted(false);
             m_wakeLockObj.release();
             m_wakeLockObj = null;
+        }
+    }
+
+    /**
+     * 记录本地日志
+     *
+     * @param log
+     */
+    void writeLog(final String log) {
+        new Thread() {
+            public void run() {
+                WriteLog.getInstance().write(TAG, log);
+            }
+        }.start();
+    }
+
+    /**
+     * 打印和记录日志
+     *
+     * @param log
+     * @param level
+     * @param needWrite
+     */
+    void logAndWrite(String log,LogEnum level,Boolean needWrite) {
+        switch (level) {
+            case VERBOSE:
+                Log.v(TAG,log);
+                if(needWrite)
+                    writeLog(log);
+                break;
+            case DEBUG:
+                Log.d(TAG,log);
+                if(needWrite)
+                    writeLog(log);
+                break;
+            case INFO:
+                Log.i(TAG,log);
+                if(needWrite)
+                    writeLog(log);
+                break;
+            case WARN:
+                Log.w(TAG,log);
+                if(needWrite)
+                    writeLog(log);
+                break;
         }
     }
 }
