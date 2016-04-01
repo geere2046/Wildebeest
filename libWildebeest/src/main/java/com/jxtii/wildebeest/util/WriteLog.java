@@ -56,15 +56,15 @@ public class WriteLog {
             } else {
                 FileInputStream fi = new FileInputStream(file);
                 int kb = fi.available() / 1024;
-                Log.i(TAG, fileName + " size = " + kb + "KB");
+                Log.d(TAG, fileName + " size = " + kb + "KB");
                 if (kb >= maxSize) {
                     Boolean del = file.delete();
                     if (del) {
-                        Log.w(TAG, "delete " + fileName + " success");
+                        Log.i(TAG, "delete " + fileName + " success");
                         file = new File(logPath);
                         file.createNewFile();
                     } else {
-                        Log.w(TAG, "delete " + fileName + " failure");
+                        Log.i(TAG, "delete " + fileName + " failure");
                     }
                 }
                 fi.close();
@@ -93,7 +93,7 @@ public class WriteLog {
 
     void writeLog(String log) {
         SimpleDateFormat simpleDateFormat = new SimpleDateFormat(
-                "{MM-dd HH:mm:ss.SSS}", Locale.CHINA);
+                "{MM-dd_HH:mm:ss.SSS}", Locale.CHINA);
         timeStr = simpleDateFormat.format(System.currentTimeMillis());
         try {
             String last = sb.toString();

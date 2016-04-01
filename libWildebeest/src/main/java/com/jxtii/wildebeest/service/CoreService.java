@@ -90,10 +90,10 @@ public class CoreService extends Service implements SensorEventListener{
 
     public int onStartCommand(Intent intent, int flags, int startId) {
         if (intent == null) {
-            logAndWrite(">>>>>>>onStartCommand intent is null", LogEnum.INFO, true);
+            logAndWrite("onStartCommand intent is null", LogEnum.INFO, true);
             stopSelfSevice();
         } else {
-            logAndWrite(">>>>>>>onStartCommand receive", LogEnum.INFO, true);
+            logAndWrite("onStartCommand receive", LogEnum.INFO, true);
             stopTimer();
             if (mTimer == null)
                 mTimer = new Timer();
@@ -121,23 +121,23 @@ public class CoreService extends Service implements SensorEventListener{
     }
 
     public void onDestroy() {
-        logAndWrite(">>>>>>>>  onDestroy", LogEnum.INFO, true);
+        logAndWrite("onDestroy", LogEnum.INFO, true);
         super.onDestroy();
         stopSelfSevice();
     }
 
     public void onLowMemory() {
-        logAndWrite(">>>>>>>>  onLowMemory", LogEnum.INFO, true);
+        logAndWrite("onLowMemory", LogEnum.INFO, true);
         super.onLowMemory();
     }
 
     public void onTrimMemory(int level) {
-        logAndWrite(">>>>>>>>  onTrimMemory", LogEnum.INFO, false);
+        logAndWrite("onTrimMemory", LogEnum.INFO, false);
         super.onTrimMemory(level);
     }
 
     void stopSelfSevice() {
-        logAndWrite(">>>>>>>>  stopSelfSevice", LogEnum.INFO, true);
+        logAndWrite("stopSelfSevice", LogEnum.INFO, true);
         AlarmManager am = (AlarmManager) this
                 .getSystemService(Context.ALARM_SERVICE);
         Intent intent = new Intent();

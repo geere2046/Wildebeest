@@ -52,9 +52,9 @@ public class AMAPLocalizer implements AMapLocationListener {
 
     private AMAPLocalizer(Context ctx) {
         this.ctx = ctx;
-        if (aMapLocationClient == null)
-            aMapLocationClient = new AMapLocationClient(ctx);
-        aMapLocationClient.setLocationListener(this);
+        if (this.aMapLocationClient == null)
+            this.aMapLocationClient = new AMapLocationClient(ctx);
+        this.aMapLocationClient.setLocationListener(this);
         db = Connector.getDatabase();
     }
 
@@ -88,11 +88,16 @@ public class AMAPLocalizer implements AMapLocationListener {
      *            定位间隔
      */
     public void setLocationManager(Boolean swit, String locMode, long minTime) {
-        if (swit && this.aMapLocationClient != null) {
+        logAndWrite("swit is " + swit + " " + (this.aMapLocationClient != null), LogEnum.INFO, true);
+        if (swit) {
+            if(this.aMapLocationClient == null){
+                this.aMapLocationClient = new AMapLocationClient(ctx);
+                this.aMapLocationClient.setLocationListener(this);
+            }
             setLocationOption(locMode, minTime);
-            if(!aMapLocationClient.isStarted()){
-                logAndWrite("AMapLocationClient start",LogEnum.INFO,true);
-                aMapLocationClient.startLocation();
+            if(!this.aMapLocationClient.isStarted()){// aMapLocationClient.isStarted()有bug，无论是否启动成功都返回false
+                logAndWrite("AMapLocationClient start", LogEnum.INFO, true);
+                this.aMapLocationClient.startLocation();
             }else{
                 logAndWrite("AMapLocationClient haved start", LogEnum.INFO, true);
             }
@@ -103,6 +108,7 @@ public class AMAPLocalizer implements AMapLocationListener {
                 this.aMapLocationClient.onDestroy();
             }
             this.aMapLocationClient = null;
+            instance = null;
         }
     }
 
@@ -145,7 +151,7 @@ public class AMAPLocalizer implements AMapLocationListener {
         EventBus.getDefault().post(amapLocation);
 
         if (amapLocation != null && amapLocation.getErrorCode() == 0) {
-            logAndWrite("amapLocation.getProvider() = " + amapLocation.getProvider(), LogEnum.INFO, true);
+            logAndWrite(amapLocation.getProvider() + " " + isStart, LogEnum.INFO, true);
             String extra = "";
             if ("gps".equals(amapLocation.getProvider())) {
                 extra = "定位结果来自GPS信号";
@@ -184,7 +190,8 @@ public class AMAPLocalizer implements AMapLocationListener {
             Double geoLng = amapLocation.getLongitude();
             locinfo = geoLat + ";" + geoLng + ";定位器不做地址解析;"
                     + amapLocation.getProvider() + ";" + extra;
-            logAndWrite("locinfo = " + locinfo, LogEnum.INFO, false);
+//            logAndWrite("locinfo = " + locinfo, LogEnum.INFO, false);
+
             /*//TODO 模拟速度超过10km/h时启动
             if(flag&& !isStart){
                 uploadInitInfo();
@@ -381,8 +388,8 @@ public class AMAPLocalizer implements AMapLocationListener {
     }
 
     void validNoGpsInfo() {
-        logAndWrite("validNoGpsInfo", LogEnum.INFO, true);
         if (isStart) {
+            logAndWrite("validNoGpsInfo", LogEnum.INFO, true);
             NoGpsInfo noGpsInfo = null;
             List<NoGpsInfo> listInfo = DataSupport.select("id", "noGpsTime").order("noGpsTime desc").limit(2).find(NoGpsInfo.class);
             if (listInfo != null && listInfo.size() > 0) {

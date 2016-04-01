@@ -50,10 +50,12 @@ public class TaskService extends Service {
     AMAPLocalizer amapLocalizer;
     Timer mTimer;
     TimerTask mTimerTask;
+    TimerTask mTimerTaskSc;
     int interval = 900;
     PowerManager.WakeLock m_wakeLockObj;
     AMapLocation amapLocation;
     AMapLocation amapLocationClone;
+    AMapLocation amapLocationWatcher;
 
     public IBinder onBind(Intent intent) {
         return null;
@@ -68,14 +70,21 @@ public class TaskService extends Service {
     }
 
     public int onStartCommand(Intent intent, int flags, int startId) {
+
         if (intent == null) {
-            logAndWrite(">>>>>>>onStartCommand intent is null", LogEnum.WARN, true);
+            logAndWrite("onStartCommand intent is null", LogEnum.WARN, true);
             stopSelfSevice();
         } else {
             interval = intent.getIntExtra("interval", 30 * 1000);
-            logAndWrite(">>>>>>>onStartCommand interval = " + interval, LogEnum.WARN, true);
-            if (amapLocalizer != null)
+            logAndWrite("onStartCommand interval = " + interval, LogEnum.WARN, true);
+            if (amapLocalizer != null){
+                logAndWrite("amapLocalizer is not null", LogEnum.WARN, true);
                 amapLocalizer.setLocationManager(true, "gps", interval);
+            }else{
+                logAndWrite("amapLocalizer is null", LogEnum.WARN, true);
+                amapLocalizer = AMAPLocalizer.getInstance(ctx);
+                amapLocalizer.setLocationManager(true, "gps", interval);
+            }
             stopTimer();
             if (mTimer == null)
                 mTimer = new Timer();
@@ -83,6 +92,7 @@ public class TaskService extends Service {
                 mTimerTask = new TimerTask() {
                     public void run() {
                         acquireWakeLock(ctx);
+//                        logAndWrite("mTimerTask", LogEnum.INFO, false);
                         uploadLocInfo();
                         isNeedFinish();
                         releaseWakeLock();
@@ -91,20 +101,43 @@ public class TaskService extends Service {
             }
             mTimer.scheduleAtFixedRate(mTimerTask, 1 * 1000,
                     interval);
+            if(mTimerTaskSc == null){
+                mTimerTaskSc = new TimerTask() {
+                    public void run() {
+                        acquireWakeLock(ctx);
+                        logAndWrite("mTimerTaskSc", LogEnum.INFO, false);
+                        try {
+                            if (amapLocationWatcher == null) {
+                                logAndWrite("amapLocationWatcher == null", LogEnum.WARN, true);
+                                stopSelfSevice();
+                            } else {
+                                logAndWrite("amapLocationWatcher != null", LogEnum.WARN, true);
+                                amapLocationWatcher = null;
+                            }
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
+                        releaseWakeLock();
+                    }
+                };
+            }
+            mTimer.scheduleAtFixedRate(mTimerTaskSc, 1 * 60 * 1000,
+                    1 * 60 * 1000);
         }
         return START_STICKY;
     }
 
     @Subscribe(threadMode = ThreadMode.POSTING)
     public void oreceiveAMapLocation(AMapLocation amapLocation){
-        logAndWrite("AMapLocation is " + amapLocation.toStr(), LogEnum.WARN, false);
+        logAndWrite("AMapLocation is " + amapLocation.toStr(), LogEnum.INFO, false);
         this.amapLocation = amapLocation;
         this.amapLocationClone = amapLocation;
+        this.amapLocationWatcher = amapLocation;
     }
 
     @Subscribe(threadMode = ThreadMode.ASYNC)
     public void receivePointRecordBus(PointRecordBus bus) {
-        logAndWrite("PointRecordBus is " + bus.toStr(), LogEnum.WARN, false);
+        logAndWrite("PointRecordBus is " + bus.toStr(), LogEnum.INFO, false);
         Map<String, Object> params = new HashMap<String, Object>();
         RouteLog log = DataSupport.findLast(RouteLog.class);
         if (log != null) {
@@ -176,8 +209,8 @@ public class TaskService extends Service {
         try {
             String locinfo = (amapLocalizer != null) ? amapLocalizer.locinfo : "";
             if (!TextUtils.isEmpty(locinfo)) {
+                logAndWrite("locinfo is not null", LogEnum.DEBUG, false);
                 locinfo = "";
-                logAndWrite("locinfo is " + locinfo, LogEnum.INFO, false);
             }
             if (this.amapLocation != null) {
                 RouteLog log = DataSupport.findLast(RouteLog.class);
@@ -311,12 +344,12 @@ public class TaskService extends Service {
      * 完成线路算分
      */
     void uploadFinishInfo() {
-        logAndWrite("uploadFinishInfo", LogEnum.INFO, true);
         new Thread() {
             public void run() {
                 RouteLog log = DataSupport.findLast(RouteLog.class);
                 CompreRecord cr = DataSupport.findLast(CompreRecord.class);
                 if (log != null && cr != null) {
+                    logAndWrite("uploadFinishInfo", LogEnum.INFO, true);
                     long timeFin = CommUtil.timeSpanSecond(cr.getBeginTime(), cr.getCurrentTime());
                     float aveSp = cr.getTravelMeter() * 18 / (timeFin * 5);
                     Map<String, Object> paramAfter = new HashMap<String, Object>();
@@ -403,6 +436,10 @@ public class TaskService extends Service {
         if (mTimerTask != null) {
             mTimerTask.cancel();
             mTimerTask = null;
+        }
+        if (mTimerTaskSc != null) {
+            mTimerTaskSc.cancel();
+            mTimerTaskSc = null;
         }
     }
 
