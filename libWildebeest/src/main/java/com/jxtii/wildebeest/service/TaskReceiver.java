@@ -1,5 +1,7 @@
 package com.jxtii.wildebeest.service;
 
+import android.app.AlarmManager;
+import android.app.PendingIntent;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
@@ -41,6 +43,15 @@ public class TaskReceiver extends BroadcastReceiver {
         } else if (CommUtil.STOP_INTENT.equals(intent.getAction())) {
             logAndWrite(DateStr.HHmmssStr() + " _ receive STOP_INTENT", LogEnum.INFO, true);
             stopTaskService();
+        } else if ("android.intent.action.BOOT_COMPLETED".equals(intent.getAction())) {
+            AlarmManager am = (AlarmManager) ctx.getSystemService(Context.ALARM_SERVICE);
+            long triggerAtTime = System.currentTimeMillis() + 2 * 60 * 1000;
+            long interval = 15 * 60 * 1000;
+            Intent intentBoot = new Intent();
+            intentBoot.setAction(CommUtil.START_INTENT);
+            intentBoot.setPackage(ctx.getPackageName());
+            PendingIntent pt = PendingIntent.getBroadcast(ctx, 0, intentBoot, 0);
+            am.setRepeating(AlarmManager.RTC_WAKEUP, triggerAtTime, interval, pt);
         }
     }
 

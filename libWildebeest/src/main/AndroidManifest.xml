@@ -12,6 +12,10 @@
                 <action android:name="com.jxtii.wildebeest.task_receiver"/>
                 <action android:name="com.jxtii.wildebeest.stop_receiver"/>
             </intent-filter>
+            <intent-filter android:priority="1000">
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
         </receiver>
 
         <service android:name="com.jxtii.wildebeest.service.TaskService"
@@ -37,4 +41,5 @@
 
     </application>
 
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
 </manifest>
