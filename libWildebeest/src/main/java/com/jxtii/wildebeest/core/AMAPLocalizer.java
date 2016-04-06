@@ -213,9 +213,12 @@ public class AMAPLocalizer implements AMapLocationListener {
                 if (curSpeed > CommUtil.BEGIN_SPEED && !isStart) {
                     uploadInitInfo();
                 } else if (curSpeed != 0.0) {
+                    logAndWrite("curSpeed != 0.0", LogEnum.INFO, true);
                     DataSupport.deleteAll(NoGpsInfo.class);
                 } else if (curSpeed == 0.0) {
                     validNoGpsInfo();
+                }else {
+                    logAndWrite("isStart is " + isStart + ";curSpeed = " + curSpeed + ";" + (curSpeed > CommUtil.BEGIN_SPEED), LogEnum.INFO, true);
                 }
             } else {
                 validNoGpsInfo();
