@@ -37,5 +37,6 @@
         <mapping class="com.jxtii.wildebeest.model.PointRecord"/>
         <mapping class="com.jxtii.wildebeest.model.RouteLog"/>
         <mapping class="com.jxtii.wildebeest.model.NoGpsInfo"/>
+        <mapping class="com.jxtii.wildebeest.model.ConfigPara"/>
     </list>
 </litepal>

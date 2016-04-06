@@ -15,9 +15,11 @@ import com.alibaba.fastjson.JSON;
 import com.amap.api.location.AMapLocation;
 import com.jxtii.wildebeest.bean.PointRecordBus;
 import com.jxtii.wildebeest.bean.PubData;
+import com.jxtii.wildebeest.bean.PubDataList;
 import com.jxtii.wildebeest.bean.RouteFinishBus;
 import com.jxtii.wildebeest.core.AMAPLocalizer;
 import com.jxtii.wildebeest.model.CompreRecord;
+import com.jxtii.wildebeest.model.ConfigPara;
 import com.jxtii.wildebeest.model.NoGpsInfo;
 import com.jxtii.wildebeest.model.PointRecord;
 import com.jxtii.wildebeest.model.PositionRecord;
@@ -114,6 +116,7 @@ public class TaskService extends Service {
                                 logAndWrite("amapLocationWatcher != null", LogEnum.WARN, true);
                                 amapLocationWatcher = null;
                             }
+                            syncConfig();
                         } catch (Exception e) {
                             e.printStackTrace();
                         }
@@ -122,7 +125,7 @@ public class TaskService extends Service {
                 };
             }
             mTimer.scheduleAtFixedRate(mTimerTaskSc, 1 * 60 * 1000,
-                    1 * 60 * 1000);
+                    CommUtil.WATCHER_FREQ);
         }
         return START_STICKY;
     }
@@ -198,6 +201,73 @@ public class TaskService extends Service {
                 params.put("rLon", 0.0);
                 params.put("rAlt", 0.0);
                 logAndWrite("this.amapLocationClone is null", LogEnum.INFO, true);
+            }
+        }
+    }
+
+    /**
+     * 同步配置
+     */
+    void syncConfig() {
+        ConfigPara para = DataSupport.findLast(ConfigPara.class);
+        if (para == null) {
+            logAndWrite("syncConfig init", LogEnum.INFO, true);
+            downloadConfig();
+        } else {
+            String createTime = para.getCreateTime();
+            long span = CommUtil.timeSpanSecond(createTime, DateStr.yyyymmddHHmmssStr());
+            if (span > 60 * 60) {//每小时同步一次配置init
+                logAndWrite("syncConfig reflash", LogEnum.INFO, true);
+                DataSupport.deleteAll(ConfigPara.class);
+                downloadConfig();
+            } else {
+                logAndWrite("syncConfig span is " + span, LogEnum.INFO, false);
+            }
+        }
+    }
+
+    /**
+     * 下载配置
+     */
+    void downloadConfig() {
+        Map<String, Object> attrMap = new HashMap<String, Object>();
+        attrMap.put("sqlKey", "sql_attr_view");
+        attrMap.put("attrCode", "config_para");
+        attrMap.put("sqlType", "sql");
+        String paramStr = JSON.toJSONString(attrMap);
+        PubDataList pubDataList = new WebserviceClient().loadDataList(paramStr);
+        logAndWrite("downloadConfig.getCode() = " + pubDataList.getCode(), LogEnum.INFO, false);
+        if (pubDataList != null && "00".equals(pubDataList.getCode())) {
+            if (pubDataList.getData() != null && pubDataList.getData().size() > 0) {
+                logAndWrite("downloadConfig : " + JSON.toJSONString(pubDataList.getData()), LogEnum.INFO, false);
+                ConfigPara paraIn = new ConfigPara();
+                for (Map<String, Object> mapInner : pubDataList.getData()) {
+                    if ("GPS_BEARING".equals(mapInner.get("ATTR_VALUE").toString())) {
+                        paraIn.setGpsBearing(Long.valueOf(mapInner.get("ATTR_VALUE_NAME").toString()));
+                    } else if ("MIN_ACC".equals(mapInner.get("ATTR_VALUE").toString())) {
+                        paraIn.setMinAcc(Float.valueOf(mapInner.get("ATTR_VALUE_NAME").toString()));
+                    } else if ("ACC_VALID_THRESHOLD".equals(mapInner.get("ATTR_VALUE").toString())) {
+                        paraIn.setAccValidThreshold(Long.valueOf(mapInner.get("ATTR_VALUE_NAME").toString()));
+                    } else if ("BASIC_SCORE_ACC".equals(mapInner.get("ATTR_VALUE").toString())) {
+                        paraIn.setBasicScoreAcc(Integer.valueOf(mapInner.get("ATTR_VALUE_NAME").toString()));
+                    } else if ("BASIC_SCORE_DEC".equals(mapInner.get("ATTR_VALUE").toString())) {
+                        paraIn.setBasicScoreDec(Integer.valueOf(mapInner.get("ATTR_VALUE_NAME").toString()));
+                    } else if ("MAX_SPEED".equals(mapInner.get("ATTR_VALUE").toString())) {
+                        paraIn.setMaxSpeed(Float.valueOf(mapInner.get("ATTR_VALUE_NAME").toString()));
+                    } else if ("BEGIN_SPEED".equals(mapInner.get("ATTR_VALUE").toString())) {
+                        paraIn.setBeginSpeed(Float.valueOf(mapInner.get("ATTR_VALUE_NAME").toString()));
+                    } else if ("NOGPS_TIME".equals(mapInner.get("ATTR_VALUE").toString())) {
+                        paraIn.setNoGpsTime(Long.valueOf(mapInner.get("ATTR_VALUE_NAME").toString()));
+                    } else if ("LOC_FREQ".equals(mapInner.get("ATTR_VALUE").toString())) {
+                        paraIn.setLocFreq(Integer.valueOf(mapInner.get("ATTR_VALUE_NAME").toString()));
+                    } else if ("G_AVE".equals(mapInner.get("ATTR_VALUE").toString())) {
+                        paraIn.setgAve(Double.valueOf(mapInner.get("ATTR_VALUE_NAME").toString()));
+                    } else if ("WATCHER_FREQ".equals(mapInner.get("ATTR_VALUE").toString())) {
+                        paraIn.setWatcherFreq(Integer.valueOf(mapInner.get("ATTR_VALUE_NAME").toString()));
+                    }
+                }
+                paraIn.setCreateTime(DateStr.yyyymmddHHmmssStr());
+                paraIn.save();
             }
         }
     }

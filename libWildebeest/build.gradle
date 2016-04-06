@@ -46,10 +46,10 @@ makeJar.dependsOn(build)
 // gradlew makeJar
 
 task clearJar(type: Delete) {
-    delete 'libs/wildebeest_V0.961_20160331'
+    delete 'libs/wildebeest_V0.98_simulated'
 }
 task makeJarSc(type:org.gradle.api.tasks.bundling.Jar) {
-    baseName 'wildebeest_V0.961_20160331'
+    baseName 'wildebeest_V0.98_simulated'
     from('build/intermediates/classes/release/com/jxtii/wildebeest')
     into('com/jxtii/wildebeest')
     exclude('test/', 'BuildConfig.class', 'R.class')
