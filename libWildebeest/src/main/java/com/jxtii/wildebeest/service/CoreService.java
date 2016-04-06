@@ -233,7 +233,7 @@ public class CoreService extends Service implements SensorEventListener{
                     double[][] vDirect = earth2phone.getData();
                     double[] vDir = {vDirect[0][0], vDirect[0][1], vDirect[0][2]};
                     if (gValue[0] == 0 && gValue[1] == 0 && gValue[2] == 0) {
-                        logAndWrite("acceleration is too low", LogEnum.INFO, false);
+//                        logAndWrite("acceleration is too low", LogEnum.INFO, false);
                     } else {
                         double[] aDir = {Double.parseDouble(String.valueOf(gValue[0])),
                                 Double.parseDouble(String.valueOf(gValue[1])),
@@ -267,13 +267,17 @@ public class CoreService extends Service implements SensorEventListener{
                             }else{
                                 switch (accJudgeBean.getAccState()){
                                     case ACC_STATE:
-                                        long duration = System.currentTimeMillis() - accJudgeBean.getBeginTime();
+                                        long cur = System.currentTimeMillis();
+                                        long duration = cur - accJudgeBean.getBeginTime();
                                         if(duration > CommUtil.ACC_VALID_THRESHOLD){
-                                            logAndWrite("持续加速", LogEnum.WARN, true);
+                                            logAndWrite("ACC_STATE:{duration="+duration+";cur="+cur+";last="+accJudgeBean.getBeginTime()+"}", LogEnum.WARN, true);
                                             int pr = DataSupport.count(PointRecord.class);
                                             logAndWrite("PointRecord count = " + pr, LogEnum.WARN, false);
 
-                                            accJudgeBean = null;
+                                            accJudgeBean.setAccState(AccelerationEnum.ACC_STATE);
+                                            accJudgeBean.setBeginTime(System.currentTimeMillis());
+                                            accJudgeBean.setDuration(0);
+
                                             pointRecord.setEventType(2);
                                             pointRecord.setPoint(pointCal + CommUtil.BASIC_SCORE_ACC);
                                             pointRecord.save();
@@ -288,13 +292,11 @@ public class CoreService extends Service implements SensorEventListener{
                                         }
                                         break;
                                     case DEC_STATE:
-                                        accJudgeBean = new AccJudgeBean();
                                         accJudgeBean.setAccState(AccelerationEnum.ACC_STATE);
                                         accJudgeBean.setBeginTime(System.currentTimeMillis());
                                         accJudgeBean.setDuration(0);
                                         break;
                                     case UNKOWN_STATE:
-                                        accJudgeBean = new AccJudgeBean();
                                         accJudgeBean.setAccState(AccelerationEnum.ACC_STATE);
                                         accJudgeBean.setBeginTime(System.currentTimeMillis());
                                         accJudgeBean.setDuration(0);
@@ -311,19 +313,22 @@ public class CoreService extends Service implements SensorEventListener{
                             }else{
                                 switch (accJudgeBean.getAccState()){
                                     case ACC_STATE:
-                                        accJudgeBean = new AccJudgeBean();
                                         accJudgeBean.setAccState(AccelerationEnum.DEC_STATE);
                                         accJudgeBean.setBeginTime(System.currentTimeMillis());
                                         accJudgeBean.setDuration(0);
                                         break;
                                     case DEC_STATE:
-                                        long duration = System.currentTimeMillis() - accJudgeBean.getBeginTime();
+                                        long cur = System.currentTimeMillis();
+                                        long duration = cur - accJudgeBean.getBeginTime();
                                         if(duration > CommUtil.ACC_VALID_THRESHOLD){
-                                            logAndWrite("持续减速", LogEnum.WARN, true);
+                                            logAndWrite("DEC_STATE:{duration="+duration+";cur="+cur+";last="+accJudgeBean.getBeginTime()+"}", LogEnum.WARN, true);
                                             int pr = DataSupport.count(PointRecord.class);
                                             logAndWrite("PointRecord count = " + pr, LogEnum.WARN, false);
 
-                                            accJudgeBean = null;
+                                            accJudgeBean.setAccState(AccelerationEnum.DEC_STATE);
+                                            accJudgeBean.setBeginTime(System.currentTimeMillis());
+                                            accJudgeBean.setDuration(0);
+
                                             pointRecord.setEventType(3);
                                             pointRecord.setPoint(pointCal + CommUtil.BASIC_SCORE_DEC);
                                             pointRecord.save();
@@ -338,7 +343,6 @@ public class CoreService extends Service implements SensorEventListener{
                                         }
                                         break;
                                     case UNKOWN_STATE:
-                                        accJudgeBean = new AccJudgeBean();
                                         accJudgeBean.setAccState(AccelerationEnum.DEC_STATE);
                                         accJudgeBean.setBeginTime(System.currentTimeMillis());
                                         accJudgeBean.setDuration(0);
@@ -348,7 +352,7 @@ public class CoreService extends Service implements SensorEventListener{
                         }
                     }
                 } else {
-                    logAndWrite("this.pushBus invalid", LogEnum.WARN, false);
+//                    logAndWrite("this.pushBus invalid", LogEnum.WARN, false);
                 }
             } else {
 //                logAndWrite("this.pushBus is null", LogEnum.WARN, false);

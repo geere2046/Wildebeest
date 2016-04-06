@@ -23,6 +23,8 @@ public class CompreRecord extends DataSupport {
 
     private double saveLng;
 
+    private int usePhone;
+
     public int getId() {
         return id;
     }
@@ -77,5 +79,13 @@ public class CompreRecord extends DataSupport {
 
     public void setSaveLng(double saveLng) {
         this.saveLng = saveLng;
+    }
+
+    public int getUsePhone() {
+        return usePhone;
+    }
+
+    public void setUsePhone(int usePhone) {
+        this.usePhone = usePhone;
     }
 }

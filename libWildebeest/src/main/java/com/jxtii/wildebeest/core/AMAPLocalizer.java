@@ -361,6 +361,7 @@ public class AMAPLocalizer implements AMapLocationListener {
                     paramAfter.put("rHighSpeed", cr.getMaxSpeed());
                     paramAfter.put("rAveSpeed", aveSp);
                     paramAfter.put("rTravelMeter", cr.getTravelMeter());
+                    paramAfter.put("rUsePhone", cr.getUsePhone());
                     Map<String, Object> config = new HashMap<String, Object>();
                     config.put("interfaceName", "pjRouteFactorFinish");
                     config.put("asyn", "false");

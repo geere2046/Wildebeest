@@ -11,6 +11,7 @@
             <intent-filter>
                 <action android:name="com.jxtii.wildebeest.task_receiver"/>
                 <action android:name="com.jxtii.wildebeest.stop_receiver"/>
+                <action android:name="android.intent.action.USER_PRESENT" />
             </intent-filter>
             <intent-filter android:priority="1000">
                 <action android:name="android.intent.action.BOOT_COMPLETED" />
