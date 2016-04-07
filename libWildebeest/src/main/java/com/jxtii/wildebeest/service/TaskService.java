@@ -65,7 +65,7 @@ public class TaskService extends Service {
 
     public void onCreate() {
         super.onCreate();
-        logAndWrite(">>>>>>>onCreate service", LogEnum.WARN, true);
+        logAndWrite("onCreateService", LogEnum.WARN, true);
         ctx = TaskService.this;
         amapLocalizer = AMAPLocalizer.getInstance(ctx);
         EventBus.getDefault().register(this);
@@ -80,10 +80,10 @@ public class TaskService extends Service {
             interval = intent.getIntExtra("interval", 30 * 1000);
             logAndWrite("onStartCommand interval = " + interval, LogEnum.WARN, true);
             if (amapLocalizer != null){
-                logAndWrite("amapLocalizer is not null", LogEnum.WARN, true);
+                logAndWrite("amapLocalizer != null", LogEnum.WARN, false);
                 amapLocalizer.setLocationManager(true, "gps", interval);
             }else{
-                logAndWrite("amapLocalizer is null", LogEnum.WARN, true);
+                logAndWrite("amapLocalizer == null", LogEnum.WARN, false);
                 amapLocalizer = AMAPLocalizer.getInstance(ctx);
                 amapLocalizer.setLocationManager(true, "gps", interval);
             }
@@ -110,10 +110,10 @@ public class TaskService extends Service {
                         logAndWrite("mTimerTaskSc", LogEnum.INFO, false);
                         try {
                             if (amapLocationWatcher == null) {
-                                logAndWrite("amapLocationWatcher == null", LogEnum.WARN, true);
+                                logAndWrite("amapLocationWatcher == null", LogEnum.WARN, false);
                                 stopSelfSevice();
                             } else {
-                                logAndWrite("amapLocationWatcher != null", LogEnum.WARN, true);
+                                logAndWrite("amapLocationWatcher != null", LogEnum.WARN, false);
                                 amapLocationWatcher = null;
                             }
                             syncConfig();
@@ -163,8 +163,7 @@ public class TaskService extends Service {
                     String paramStr = JSON.toJSONString(params);
                     logAndWrite("paramStr = " + paramStr, LogEnum.WARN, false);
                     PubData pubData = new WebserviceClient().loadData(paramStr);
-                    logAndWrite("upload pjRouteFactorSpeeding", LogEnum.INFO, true);
-                    logAndWrite("pubData.getCode() = " + pubData.getCode(), LogEnum.WARN, false);
+                    logAndWrite("upload pjRouteFactorSpeeding is " + pubData.getCode(), LogEnum.INFO, true);
                     if(pubData.getData() != null){
                         logAndWrite("pubData.getData() = " + JSON.toJSONString(pubData.getData()), LogEnum.WARN, false);
                     }
@@ -188,8 +187,7 @@ public class TaskService extends Service {
                     String paramStr = JSON.toJSONString(params);
                     logAndWrite("paramStr = " + paramStr, LogEnum.WARN, false);
                     PubData pubData = new WebserviceClient().loadData(paramStr);
-                    logAndWrite("upload pjRouteFactorInterface", LogEnum.INFO, true);
-                    logAndWrite("pubData.getCode() = " + pubData.getCode(), LogEnum.WARN, false);
+                    logAndWrite("upload pjRouteFactorInterface is" + pubData.getCode(), LogEnum.INFO, true);
                     if(pubData.getData() != null){
                         logAndWrite("pubData.getData() = " + JSON.toJSONString(pubData.getData()), LogEnum.WARN, false);
                     }
@@ -313,8 +311,7 @@ public class TaskService extends Service {
         String paramStr = JSON.toJSONString(params);
         logAndWrite("paramStr = " + paramStr, LogEnum.DEBUG, false);
         PubData pubData = new WebserviceClient().loadData(paramStr);
-        logAndWrite("upload pjRouteLocation", LogEnum.INFO, true);
-        logAndWrite("pubData.getCode() = " + pubData.getCode(), LogEnum.INFO, false);
+        logAndWrite("upload pjRouteLocation is " + pubData.getCode(), LogEnum.INFO, true);
         if (pubData != null && "00".equals(pubData.getCode())) {
             if (pubData.getData() != null) {
                 logAndWrite("pubData.getData() = " + JSON.toJSONString(pubData.getData()), LogEnum.INFO, false);
@@ -437,7 +434,7 @@ public class TaskService extends Service {
                     String paramStr = JSON.toJSONString(paramAfter);
                     logAndWrite("paramStr = " + paramStr, LogEnum.WARN, false);
                     PubData pubData = new WebserviceClient().loadData(paramStr);
-                    logAndWrite("pubData.getCode() = " + pubData.getCode(), LogEnum.WARN, false);
+                    logAndWrite("upload finishInfo is " + pubData.getCode(), LogEnum.WARN, true);
                     if (pubData != null && "00".equals(pubData.getCode())) {
                         if (pubData.getData() != null) {
                             logAndWrite("pubData.getData() = " + JSON.toJSONString(pubData.getData()), LogEnum.INFO, false);
@@ -464,23 +461,23 @@ public class TaskService extends Service {
     }
 
     public void onDestroy() {
-        logAndWrite(">>>>>>>>  onDestroy", LogEnum.INFO, true);
+        logAndWrite("onDestroy", LogEnum.INFO, false);
         super.onDestroy();
         stopSelfSevice();
     }
 
     public void onLowMemory() {
-        logAndWrite(">>>>>>>>  onLowMemory", LogEnum.INFO, true);
+        logAndWrite("onLowMemory", LogEnum.INFO, false);
         super.onLowMemory();
     }
 
     public void onTrimMemory(int level) {
-        logAndWrite(">>>>>>>>  onTrimMemory", LogEnum.INFO, false);
+        logAndWrite("onTrimMemory", LogEnum.INFO, false);
         super.onTrimMemory(level);
     }
 
     void stopSelfSevice() {
-        logAndWrite(">>>>>>>>  stopSelfSevice", LogEnum.INFO, true);
+        logAndWrite("stopSelfSevice", LogEnum.INFO, true);
         if (amapLocalizer != null) {
             amapLocalizer.setLocationManager(false, "", 0);
         }

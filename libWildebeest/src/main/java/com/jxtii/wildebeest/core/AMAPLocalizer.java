@@ -88,7 +88,7 @@ public class AMAPLocalizer implements AMapLocationListener {
      *            定位间隔
      */
     public void setLocationManager(Boolean swit, String locMode, long minTime) {
-        logAndWrite("swit is " + swit + " " + (this.aMapLocationClient != null), LogEnum.INFO, true);
+        logAndWrite("swit is " + swit + " " + (this.aMapLocationClient != null), LogEnum.INFO, false);
         if (swit) {
             if(this.aMapLocationClient == null){
                 this.aMapLocationClient = new AMapLocationClient(ctx);
@@ -96,10 +96,10 @@ public class AMAPLocalizer implements AMapLocationListener {
             }
             setLocationOption(locMode, minTime);
             if(!this.aMapLocationClient.isStarted()){// aMapLocationClient.isStarted()有bug，无论是否启动成功都返回false
-                logAndWrite("AMapLocationClient start", LogEnum.INFO, true);
+                logAndWrite("AMapLocationClient start", LogEnum.INFO, false);
                 this.aMapLocationClient.startLocation();
             }else{
-                logAndWrite("AMapLocationClient haved start", LogEnum.INFO, true);
+                logAndWrite("AMapLocationClient haved start", LogEnum.INFO, false);
             }
         } else {
             if (this.aMapLocationClient != null) {
@@ -116,19 +116,19 @@ public class AMAPLocalizer implements AMapLocationListener {
         AMapLocationClientOption locationOption = new AMapLocationClientOption();
         if (TextUtils.isEmpty(locMode)) {
             locationOption.setLocationMode(AMapLocationClientOption.AMapLocationMode.Device_Sensors);
-            logAndWrite("Device_Sensors", LogEnum.INFO, true);
+            logAndWrite("Device_Sensors", LogEnum.INFO, false);
         } else {
             if ("low".equalsIgnoreCase(locMode)) {
                 locationOption.setLocationMode(AMapLocationClientOption.AMapLocationMode.Battery_Saving);
-                logAndWrite("Battery_Saving", LogEnum.INFO, true);
+                logAndWrite("Battery_Saving", LogEnum.INFO, false);
             } else if ("gps".equalsIgnoreCase(locMode)) {
                 locationOption.setLocationMode(AMapLocationClientOption.AMapLocationMode.Device_Sensors);
-                logAndWrite("Device_Sensors", LogEnum.INFO, true);
+                logAndWrite("Device_Sensors", LogEnum.INFO, false);
             } else {
                 //设置该选项将延长定位返回时长30s，仅在高精度模式单次定位下有效
                 locationOption.setGpsFirst(true);
                 locationOption.setLocationMode(AMapLocationClientOption.AMapLocationMode.Hight_Accuracy);
-                logAndWrite("Hight_Accuracy", LogEnum.INFO, true);
+                logAndWrite("Hight_Accuracy", LogEnum.INFO, false);
             }
         }
         if (minTime < 900) {
@@ -151,7 +151,7 @@ public class AMAPLocalizer implements AMapLocationListener {
         EventBus.getDefault().post(amapLocation);
 
         if (amapLocation != null && amapLocation.getErrorCode() == 0) {
-            logAndWrite(amapLocation.getProvider() + " " + isStart, LogEnum.INFO, true);
+            logAndWrite(amapLocation.getProvider() + " " + isStart, LogEnum.INFO, false);
             String extra = "";
             if ("gps".equals(amapLocation.getProvider())) {
                 extra = "定位结果来自GPS信号";
@@ -210,17 +210,18 @@ public class AMAPLocalizer implements AMapLocationListener {
             float curSpeed = 0;
             if (amapLocation.hasSpeed()) {
                 curSpeed = (float) (amapLocation.getSpeed() * 18.0 / 5);
+                logAndWrite("isStart=" + isStart + ";curSpeed=" + curSpeed + ";beginSpeed=" + CommUtil.BEGIN_SPEED + ";" + (curSpeed > CommUtil.BEGIN_SPEED), LogEnum.INFO, true);
                 if (curSpeed > CommUtil.BEGIN_SPEED && !isStart) {
                     uploadInitInfo();
                 } else if (curSpeed != 0.0) {
-                    logAndWrite("curSpeed != 0.0", LogEnum.INFO, true);
                     DataSupport.deleteAll(NoGpsInfo.class);
                 } else if (curSpeed == 0.0) {
                     validNoGpsInfo();
                 }else {
-                    logAndWrite("isStart is " + isStart + ";curSpeed = " + curSpeed + ";" + (curSpeed > CommUtil.BEGIN_SPEED), LogEnum.INFO, true);
+                    logAndWrite("other situation", LogEnum.INFO, true);
                 }
             } else {
+                logAndWrite("isStart=" + isStart + ";noSpeed", LogEnum.INFO, true);
                 validNoGpsInfo();
             }
             if (isStart) {
@@ -318,7 +319,6 @@ public class AMAPLocalizer implements AMapLocationListener {
     }
 
     void uploadInitInfo() {
-        logAndWrite("uploadInitInfo", LogEnum.INFO, true);
         new Thread() {
             public void run() {
                 SharedPreferences sp = ctx.getApplicationContext()
@@ -330,6 +330,7 @@ public class AMAPLocalizer implements AMapLocationListener {
                 params.put("employeeId", employeeId);
                 String paramStr = JSON.toJSONString(params);
                 PubData pubData = new WebserviceClient().updateData(paramStr);
+                logAndWrite("upload initInfo is " + pubData.getCode(), LogEnum.INFO, true);
                 if (pubData != null && "00".equals(pubData.getCode())) {
                     isStart = true;
                     deleteAll();
@@ -346,7 +347,6 @@ public class AMAPLocalizer implements AMapLocationListener {
      * 完成线路算分
      */
     void uploadFinishInfo() {
-        logAndWrite("uploadFinishInfo", LogEnum.INFO, true);
         new Thread() {
             public void run() {
                 RouteLog log = DataSupport.findLast(RouteLog.class);
@@ -369,7 +369,7 @@ public class AMAPLocalizer implements AMapLocationListener {
                     String paramStr = JSON.toJSONString(paramAfter);
                     logAndWrite("paramStr = " + paramStr, LogEnum.WARN, false);
                     PubData pubData = new WebserviceClient().loadData(paramStr);
-                    logAndWrite("pubData.getCode() = " + pubData.getCode(), LogEnum.WARN, false);
+                    logAndWrite("upload finishInfo is " + pubData.getCode(), LogEnum.INFO, true);
                     if (pubData != null && "00".equals(pubData.getCode())) {
                         if (pubData.getData() != null) {
                             logAndWrite("pubData.getData() = " + JSON.toJSONString(pubData.getData()), LogEnum.INFO, false);
@@ -393,13 +393,14 @@ public class AMAPLocalizer implements AMapLocationListener {
 
     void validNoGpsInfo() {
         if (isStart) {
-            logAndWrite("validNoGpsInfo", LogEnum.INFO, true);
+            logAndWrite("validNoGpsInfo", LogEnum.INFO, false);
             NoGpsInfo noGpsInfo = null;
             List<NoGpsInfo> listInfo = DataSupport.select("id", "noGpsTime").order("noGpsTime desc").limit(2).find(NoGpsInfo.class);
             if (listInfo != null && listInfo.size() > 0) {
                 noGpsInfo = listInfo.get(0);
             }
             if (noGpsInfo == null) {
+                logAndWrite("init noGpsInfo", LogEnum.INFO, true);
                 NoGpsInfo noGps = new NoGpsInfo();
                 noGps.setNoGpsTime(DateStr.yyyymmddHHmmssStr());
                 noGps.save();
@@ -407,6 +408,7 @@ public class AMAPLocalizer implements AMapLocationListener {
                 String last = noGpsInfo.getNoGpsTime();
                 long max = CommUtil.timeSpanSecond(last, DateStr.yyyymmddHHmmssStr());
                 if (max > CommUtil.NOGPS_TIME) {
+                    logAndWrite("max="+max+";set="+CommUtil.NOGPS_TIME+";last="+last, LogEnum.INFO, true);
                     uploadFinishInfo();
                 }
             }

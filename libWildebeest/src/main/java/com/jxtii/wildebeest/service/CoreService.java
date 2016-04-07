@@ -66,7 +66,7 @@ public class CoreService extends Service implements SensorEventListener{
 
     public void onCreate() {
         super.onCreate();
-        logAndWrite(">>>>>>>onCreate service", LogEnum.WARN, true);
+        logAndWrite("onCreate service", LogEnum.WARN, true);
         ctx = CoreService.this;
         SensorManager manager = (SensorManager) ctx.getSystemService(ctx.SENSOR_SERVICE);
         //SENSOR_DELAY_UI 70ms
@@ -90,10 +90,10 @@ public class CoreService extends Service implements SensorEventListener{
 
     public int onStartCommand(Intent intent, int flags, int startId) {
         if (intent == null) {
-            logAndWrite("onStartCommand intent is null", LogEnum.INFO, true);
+            logAndWrite("onStartCommand intent is null", LogEnum.INFO, false);
             stopSelfSevice();
         } else {
-            logAndWrite("onStartCommand receive", LogEnum.INFO, true);
+            logAndWrite("onStartCommand receive", LogEnum.INFO, false);
             stopTimer();
             if (mTimer == null)
                 mTimer = new Timer();
@@ -121,13 +121,13 @@ public class CoreService extends Service implements SensorEventListener{
     }
 
     public void onDestroy() {
-        logAndWrite("onDestroy", LogEnum.INFO, true);
+        logAndWrite("onDestroy", LogEnum.INFO, false);
         super.onDestroy();
         stopSelfSevice();
     }
 
     public void onLowMemory() {
-        logAndWrite("onLowMemory", LogEnum.INFO, true);
+        logAndWrite("onLowMemory", LogEnum.INFO, false);
         super.onLowMemory();
     }
 
@@ -270,7 +270,7 @@ public class CoreService extends Service implements SensorEventListener{
                                         long cur = System.currentTimeMillis();
                                         long duration = cur - accJudgeBean.getBeginTime();
                                         if(duration > CommUtil.ACC_VALID_THRESHOLD){
-                                            logAndWrite("ACC_STATE:{duration="+duration+";cur="+cur+";last="+accJudgeBean.getBeginTime()+"}", LogEnum.WARN, true);
+                                            logAndWrite("ACC_STATE:{duration="+duration+";cur="+cur+";last="+accJudgeBean.getBeginTime()+"}", LogEnum.WARN, false);
                                             int pr = DataSupport.count(PointRecord.class);
                                             logAndWrite("PointRecord count = " + pr, LogEnum.WARN, false);
 
@@ -321,7 +321,7 @@ public class CoreService extends Service implements SensorEventListener{
                                         long cur = System.currentTimeMillis();
                                         long duration = cur - accJudgeBean.getBeginTime();
                                         if(duration > CommUtil.ACC_VALID_THRESHOLD){
-                                            logAndWrite("DEC_STATE:{duration="+duration+";cur="+cur+";last="+accJudgeBean.getBeginTime()+"}", LogEnum.WARN, true);
+                                            logAndWrite("DEC_STATE:{duration="+duration+";cur="+cur+";last="+accJudgeBean.getBeginTime()+"}", LogEnum.WARN, false);
                                             int pr = DataSupport.count(PointRecord.class);
                                             logAndWrite("PointRecord count = " + pr, LogEnum.WARN, false);
 

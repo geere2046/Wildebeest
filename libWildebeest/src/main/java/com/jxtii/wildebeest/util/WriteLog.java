@@ -29,7 +29,7 @@ public class WriteLog {
     String timeStr = null;
     StringBuffer sb = new StringBuffer();
     static String TAG = "WriteLog";
-    int maxSize = 500;// 文件最大阀值（KB）
+    int maxSize = 200;// 文件最大阀值（KB）
 
     public static WriteLog getInstance() {
         if (instance == null)
