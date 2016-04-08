@@ -233,8 +233,8 @@ public class TaskService extends Service {
         attrMap.put("attrCode", "config_para");
         attrMap.put("sqlType", "sql");
         String paramStr = JSON.toJSONString(attrMap);
-        PubDataList pubDataList = new WebserviceClient().loadDataList(paramStr);
-        logAndWrite("downloadConfig.getCode() = " + pubDataList.getCode(), LogEnum.INFO, false);
+        PubDataList pubDataList = new WebserviceClient().loadDataList(paramStr);//TODO 混淆后pubDataList为null
+        logAndWrite(pubDataList != null ?"downloadConfig.getCode() = " + pubDataList.getCode():"downloadConfig pubDataList is null", LogEnum.INFO, false);
         if (pubDataList != null && "00".equals(pubDataList.getCode())) {
             if (pubDataList.getData() != null && pubDataList.getData().size() > 0) {
                 logAndWrite("downloadConfig : " + JSON.toJSONString(pubDataList.getData()), LogEnum.INFO, false);
@@ -262,6 +262,8 @@ public class TaskService extends Service {
                         paraIn.setgAve(Double.valueOf(mapInner.get("ATTR_VALUE_NAME").toString()));
                     } else if ("WATCHER_FREQ".equals(mapInner.get("ATTR_VALUE").toString())) {
                         paraIn.setWatcherFreq(Integer.valueOf(mapInner.get("ATTR_VALUE_NAME").toString()));
+                    } else if ("END_SPEED".equals(mapInner.get("ATTR_VALUE").toString())) {
+                        paraIn.setEndSpeed(Integer.valueOf(mapInner.get("ATTR_VALUE_NAME").toString()));
                     }
                 }
                 paraIn.setCreateTime(DateStr.yyyymmddHHmmssStr());
@@ -391,17 +393,34 @@ public class TaskService extends Service {
             logAndWrite("gps closed", LogEnum.INFO, true);
             uploadFinishInfo();
         }else{
+            Boolean hadFinish = false;
             NoGpsInfo noGpsInfo = null;
             List<NoGpsInfo> listInfo = DataSupport.select("id", "noGpsTime").order("noGpsTime desc").limit(2).find(NoGpsInfo.class);
             if (listInfo != null && listInfo.size() > 0) {
                 noGpsInfo = listInfo.get(0);
             }
-            if(noGpsInfo != null){
+            if (noGpsInfo != null) {
                 String last = noGpsInfo.getNoGpsTime();
                 long max = CommUtil.timeSpanSecond(last, DateStr.yyyymmddHHmmssStr());
                 if (max > CommUtil.NOGPS_TIME) {
-                    logAndWrite(max+">"+CommUtil.NOGPS_TIME+"&&last="+last, LogEnum.INFO, true);
+                    logAndWrite(max + ">" + CommUtil.NOGPS_TIME + "&&last=" + last, LogEnum.INFO, true);
+                    hadFinish = true;
                     uploadFinishInfo();
+                }
+            }
+            if (!hadFinish) {
+                PositionRecord noPo = null;
+                List<PositionRecord> listPo = DataSupport.select("id", "dateStr").order("dateStr desc").limit(2).find(PositionRecord.class);
+                if (listPo != null && listPo.size() > 0) {
+                    noPo = listPo.get(0);
+                }
+                if (noPo != null) {
+                    String last = noPo.getDateStr();
+                    long max = CommUtil.timeSpanSecond(last, DateStr.yyyymmddHHmmssStr());
+                    if (max > CommUtil.NOGPS_TIME) {
+                        logAndWrite(max + ">" + CommUtil.NOGPS_TIME + "&&last=" + last, LogEnum.INFO, true);
+                        uploadFinishInfo();
+                    }
                 }
             }
         }

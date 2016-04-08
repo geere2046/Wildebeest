@@ -20,6 +20,7 @@ public class ConfigPara extends DataSupport {
     private double gAve;
     private int watcherFreq;
     private String createTime;
+    private float endSpeed;
 
     public int getId() {
         return id;
@@ -123,5 +124,13 @@ public class ConfigPara extends DataSupport {
 
     public void setCreateTime(String createTime) {
         this.createTime = createTime;
+    }
+
+    public float getEndSpeed() {
+        return endSpeed;
+    }
+
+    public void setEndSpeed(float endSpeed) {
+        this.endSpeed = endSpeed;
     }
 }

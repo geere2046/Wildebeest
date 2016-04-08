@@ -37,12 +37,13 @@ public class CommUtil {
     public static final long ACC_VALID_THRESHOLD = getAccValidThreshold(300);//加速度最小持续时间(ms)
     public static final int BASIC_SCORE_ACC = getBasicScoreAcc(5);//急加速的基础扣分
     public static final int BASIC_SCORE_DEC = getBasicScoreDec(10);//急减速的基础扣分
-    public static final float MAX_SPEED = getMaxSpeed(30);//超速阀值30km/h
-    public static final float BEGIN_SPEED = getBeginSpeed(30.0f);//启动记录路线速度
-    public static final long NOGPS_TIME = getNoGpsTime(180);
+    public static final float MAX_SPEED = getMaxSpeed(15);//超速阀值15km/h
+    public static final float BEGIN_SPEED = getBeginSpeed(15.0f);//启动记录路线速度
+    public static final long NOGPS_TIME = getNoGpsTime(120);//无gps信号自动结束所需持续时间
     public static final int LOC_FREQ = getLocFreq(10000);//上报定位数据频率
     public static final double G_AVE = getgAve(0.3);//加速度判断阀值
     public static final int WATCHER_FREQ = getWatcherFreq(60000);//监控任务频率
+    public static final float END_SPEED = getEndSpeed(7.0f);//结束记录速度
     //TODO 网络通讯参数 需放到so中
     public static final String NAME_SPACE = "http://ep.wqsm.gaf.com/";
     public static final String WS_URL = "http://182.106.128.43/PubService.ws";
@@ -175,6 +176,18 @@ public class CommUtil {
         } else {
             int lg = para.getWatcherFreq();
             Log.i(TAG,"getWatcherFreq = " + lg);
+            return lg == 0 ? def : lg;
+        }
+    }
+
+    static float getEndSpeed(float def){
+        Log.i(TAG,"getEndSpeed");
+        ConfigPara para = DataSupport.findLast(ConfigPara.class);
+        if (para == null) {
+            return def;
+        } else {
+            float lg = para.getEndSpeed();
+            Log.i(TAG,"getEndSpeed = " + lg);
             return lg == 0 ? def : lg;
         }
     }
